@@ -252,9 +252,8 @@ async delete(recordIds) {
         console.error(error.message);
       }
       return false;
-    }
-  }
 }
+  }
 
   async getBySmeId(smeId) {
     try {
@@ -352,7 +351,11 @@ async delete(recordIds) {
       }
       return [];
     }
-async updateTranscription(id, transcriptionData) {
+  }
+
+}
+
+  async updateTranscription(id, transcriptionData) {
     try {
       if (!id || !transcriptionData) {
         console.error("ID and transcription data are required");
@@ -375,27 +378,6 @@ async updateTranscription(id, transcriptionData) {
       return null;
     }
   }
-
-  async updateTranscription(id, transcriptionData) {
-    try {
-      const updateData = {
-        transcription: transcriptionData,
-        hasTranscription: "true", // Checkbox field format
-        transcriptionUpdatedAt: new Date().toISOString()
-      };
-      
-      return await this.update(id, updateData);
-    } catch (error) {
-      if (error?.response?.data?.message) {
-        console.error("Error updating transcription:", error?.response?.data?.message);
-      } else {
-        console.error(error.message);
-      }
-      return null;
-    }
-  }
-
-
 
   async search(query, subject = null, expertId = null) {
     try {
@@ -491,4 +473,5 @@ async updateTranscription(id, transcriptionData) {
     }
   }
 }
+
 export const contentService = new ContentService();

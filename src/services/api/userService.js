@@ -87,7 +87,7 @@ class UserService {
     }
   }
 
-  async create(userData) {
+async create(userData) {
     try {
       // Only include Updateable fields
       const params = {
@@ -106,7 +106,7 @@ class UserService {
       const response = await this.apperClient.createRecord(this.tableName, params);
       
       if (!response.success) {
-        console.error(response.message);
+        console.error("User creation failed:", response.message);
         return null;
       }
 
@@ -114,8 +114,8 @@ class UserService {
         const successfulRecords = response.results.filter(result => result.success);
         const failedRecords = response.results.filter(result => !result.success);
         
-if (failedRecords.length > 0) {
-          console.error(`Failed to create ${failedRecords.length} user records: ${JSON.stringify(failedRecords)}`);
+        if (failedRecords.length > 0) {
+          console.error(`Failed to create ${failedRecords.length} user records:${JSON.stringify(failedRecords)}`);
           failedRecords.forEach(record => {
             record.errors?.forEach(error => {
               console.error(`${error.fieldLabel}: ${error.message}`);
@@ -126,7 +126,7 @@ if (failedRecords.length > 0) {
         
         return successfulRecords.length > 0 ? successfulRecords[0].data : null;
       }
-} catch (error) {
+    } catch (error) {
       let errorMessage = "Failed to create user";
       if (error?.response?.data?.message && error.response.data.message.trim()) {
         errorMessage = error.response.data.message;
@@ -140,7 +140,7 @@ if (failedRecords.length > 0) {
     }
   }
 
-  async update(id, userData) {
+async update(id, userData) {
     try {
       // Only include Updateable fields
       const params = {
@@ -151,7 +151,7 @@ if (failedRecords.length > 0) {
           Owner: parseInt(userData.Owner?.Id || userData.Owner),
           email: userData.email,
           role: userData.role,
-credits: parseInt(userData.credits) || 0,
+          credits: parseInt(userData.credits) || 0,
           createdAt: userData.createdAt,
           password: userData.password
         }]
@@ -160,7 +160,7 @@ credits: parseInt(userData.credits) || 0,
       const response = await this.apperClient.updateRecord(this.tableName, params);
       
       if (!response.success) {
-        console.error(response.message);
+        console.error("User update failed:", response.message);
         return null;
       }
       
@@ -168,8 +168,8 @@ credits: parseInt(userData.credits) || 0,
         const successfulUpdates = response.results.filter(result => result.success);
         const failedUpdates = response.results.filter(result => !result.success);
         
-if (failedUpdates.length > 0) {
-          console.error(`Failed to update ${failedUpdates.length} user records: ${JSON.stringify(failedUpdates)}`);
+        if (failedUpdates.length > 0) {
+          console.error(`Failed to update ${failedUpdates.length} user records:${JSON.stringify(failedUpdates)}`);
           failedUpdates.forEach(record => {
             record.errors?.forEach(error => {
               console.error(`${error.fieldLabel}: ${error.message}`);
@@ -179,7 +179,7 @@ if (failedUpdates.length > 0) {
         }
         
         return successfulUpdates.length > 0 ? successfulUpdates[0].data : null;
-}
+      }
     } catch (error) {
       let errorMessage = "Failed to update user";
       if (error?.response?.data?.message && error.response.data.message.trim()) {
@@ -237,8 +237,10 @@ return true;
   }
 
   // Create default admin user if it doesn't exist
-  async createDefaultAdmin() {
+async createDefaultAdmin() {
     try {
+      console.log("Checking for existing admin user...");
+      
       // Check if admin user already exists
       const params = {
         fields: [
@@ -266,12 +268,15 @@ return true;
           }
         ]
       };
-const existingAdmin = await this.apperClient.fetchRecords(this.tableName, params);
+
+      const existingAdmin = await this.apperClient.fetchRecords(this.tableName, params);
       if (existingAdmin.success && existingAdmin.data && existingAdmin.data.length > 0) {
         console.log("Default admin user already exists");
         return existingAdmin.data[0];
       }
 
+      console.log("Creating default admin user...");
+      
       // Create default admin user
       const adminData = {
         Name: "System Administrator",
@@ -287,17 +292,19 @@ const existingAdmin = await this.apperClient.fetchRecords(this.tableName, params
       if (newAdmin) {
         // Import toast here to avoid circular dependencies
         const { toast } = await import('react-toastify');
-        toast.success("Default admin created! Email: admin@coachinb.ai, Password: Admin123!", {
+        toast.success("🎉 Default admin created! Email: admin@coachinb.ai, Password: Admin123!", {
           position: "top-right",
-          autoClose: 10000,
+          autoClose: 15000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
         });
-        console.log("Default admin user created successfully");
+        console.log("Default admin user created successfully with credentials: admin@coachinb.ai / Admin123!");
         return newAdmin;
-}
+      } else {
+        throw new Error("Failed to create admin user - no data returned");
+      }
     } catch (error) {
       let errorMessage = "Failed to create default admin user";
       if (error?.response?.data?.message && error.response.data.message.trim()) {
@@ -308,9 +315,17 @@ const existingAdmin = await this.apperClient.fetchRecords(this.tableName, params
         errorMessage = error;
       }
       console.error("Error creating default admin:", errorMessage);
+      
       // Import toast here to avoid circular dependencies
-      const { toast } = await import('react-toastify');
-      toast.error(errorMessage);
+      try {
+        const { toast } = await import('react-toastify');
+        toast.error(`Admin creation failed: ${errorMessage}`, {
+          position: "top-right",
+          autoClose: 8000,
+        });
+      } catch (toastError) {
+        console.error("Could not show error toast:", toastError);
+      }
     }
   }
 }

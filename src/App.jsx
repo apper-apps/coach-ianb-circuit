@@ -1,24 +1,25 @@
+import "@/index.css";
 import React, { createContext, useEffect, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { ToastContainer } from "react-toastify";
-import { clearUser, setUser } from "./store/userSlice";
-import Login from "@/components/pages/Login";
-import Signup from "@/components/pages/Signup";
-import Callback from "@/components/pages/Callback";
-import ErrorPage from "@/components/pages/ErrorPage";
-import ResetPassword from "@/components/pages/ResetPassword";
-import PromptPassword from "@/components/pages/PromptPassword";
-import "@/index.css";
+import { userService } from "@/services/api/userService";
 import Layout from "@/components/organisms/Layout";
 import AccountSettings from "@/components/pages/AccountSettings";
+import UserManagement from "@/components/pages/UserManagement";
 import SMEDashboard from "@/components/pages/SMEDashboard";
+import Login from "@/components/pages/Login";
+import PromptPassword from "@/components/pages/PromptPassword";
 import SuperAdminDashboard from "@/components/pages/SuperAdminDashboard";
+import ResetPassword from "@/components/pages/ResetPassword";
 import Analytics from "@/components/pages/Analytics";
 import UploadCenter from "@/components/pages/UploadCenter";
 import ClientDashboard from "@/components/pages/ClientDashboard";
+import Callback from "@/components/pages/Callback";
 import QueryInterface from "@/components/pages/QueryInterface";
-import UserManagement from "@/components/pages/UserManagement";
+import ErrorPage from "@/components/pages/ErrorPage";
+import Signup from "@/components/pages/Signup";
+import { clearUser, setUser } from "@/store/userSlice";
 
 // Create auth context
 export const AuthContext = createContext(null);
@@ -119,6 +120,20 @@ onError: function(error) {
         console.error("Authentication failed:", errorMessage);
         console.error("Full error object:", JSON.stringify(error, null, 2));
       }
+    });
+
+    // Create default admin user if none exists
+    const createDefaultAdmin = async () => {
+      try {
+        const { userService } = await import('./services/api/userService');
+        await userService.createDefaultAdmin();
+      } catch (error) {
+        console.error("Failed to create default admin:", error);
+      }
+    };
+    
+    // Call createDefaultAdmin after SDK initialization
+    createDefaultAdmin();
     });
   }, []);// No props and state should be bound
 // Create default admin user on initialization

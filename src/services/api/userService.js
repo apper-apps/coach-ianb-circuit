@@ -1,7 +1,6 @@
-import { toast } from 'react-toastify';
-
 class UserService {
   constructor() {
+    // Initialize ApperClient with Project ID and Public Key
     const { ApperClient } = window.ApperSDK;
     this.apperClient = new ApperClient({
       apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
@@ -15,6 +14,8 @@ class UserService {
       const params = {
         fields: [
           { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "Owner" } },
           { field: { Name: "email" } },
           { field: { Name: "role" } },
           { field: { Name: "credits" } },
@@ -22,8 +23,8 @@ class UserService {
         ],
         orderBy: [
           {
-            fieldName: "Name",
-            sorttype: "ASC"
+            fieldName: "createdAt",
+            sorttype: "DESC"
           }
         ]
       };
@@ -32,7 +33,6 @@ class UserService {
       
       if (!response.success) {
         console.error(response.message);
-        toast.error(response.message);
         return [];
       }
 
@@ -47,28 +47,31 @@ class UserService {
     }
   }
 
-  async getById(recordId) {
+  async getById(id) {
     try {
       const params = {
         fields: [
           { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "Owner" } },
           { field: { Name: "email" } },
           { field: { Name: "role" } },
           { field: { Name: "credits" } },
           { field: { Name: "createdAt" } }
         ]
       };
+
+      const response = await this.apperClient.getRecordById(this.tableName, id, params);
       
-      const response = await this.apperClient.getRecordById(this.tableName, recordId, params);
-      
-      if (!response || !response.data) {
+      if (!response.success) {
+        console.error(response.message);
         return null;
-      } else {
-        return response.data;
       }
+
+      return response.data;
     } catch (error) {
       if (error?.response?.data?.message) {
-        console.error(`Error fetching user with ID ${recordId}:`, error?.response?.data?.message);
+        console.error(`Error fetching user with ID ${id}:`, error?.response?.data?.message);
       } else {
         console.error(error.message);
       }
@@ -76,78 +79,41 @@ class UserService {
     }
   }
 
-  async getByRole(role) {
-    try {
-      const params = {
-        fields: [
-          { field: { Name: "Name" } },
-          { field: { Name: "email" } },
-          { field: { Name: "role" } },
-          { field: { Name: "credits" } },
-          { field: { Name: "createdAt" } }
-        ],
-        where: [
-          {
-            FieldName: "role",
-            Operator: "EqualTo",
-            Values: [role]
-          }
-        ]
-      };
-
-      const response = await this.apperClient.fetchRecords(this.tableName, params);
-      
-      if (!response.success) {
-        console.error(response.message);
-        return [];
-      }
-
-      return response.data || [];
-    } catch (error) {
-      if (error?.response?.data?.message) {
-        console.error("Error fetching users by role:", error?.response?.data?.message);
-      } else {
-        console.error(error.message);
-      }
-      return [];
-    }
-  }
-
   async create(userData) {
     try {
       // Only include Updateable fields
       const params = {
-        records: [
-          {
-            Name: userData.Name || userData.name,
-            email: userData.email,
-            role: userData.role,
-            credits: userData.credits || 0,
-            createdAt: userData.createdAt || new Date().toISOString()
-          }
-        ]
+        records: [{
+          Name: userData.Name,
+          Tags: userData.Tags,
+          Owner: parseInt(userData.Owner?.Id || userData.Owner),
+          email: userData.email,
+          role: userData.role,
+          credits: parseInt(userData.credits) || 0,
+          createdAt: userData.createdAt || new Date().toISOString(),
+          password: userData.password
+        }]
       };
-      
+
       const response = await this.apperClient.createRecord(this.tableName, params);
       
       if (!response.success) {
         console.error(response.message);
-        toast.error(response.message);
         return null;
       }
-      
+
       if (response.results) {
         const successfulRecords = response.results.filter(result => result.success);
         const failedRecords = response.results.filter(result => !result.success);
         
         if (failedRecords.length > 0) {
-          console.error(`Failed to create user ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          console.error(`Failed to create ${failedRecords.length} user records:${JSON.stringify(failedRecords)}`);
           
           failedRecords.forEach(record => {
             record.errors?.forEach(error => {
-              toast.error(`${error.fieldLabel}: ${error.message}`);
+              console.error(`${error.fieldLabel}: ${error.message}`);
             });
-            if (record.message) toast.error(record.message);
+            if (record.message) console.error(record.message);
           });
         }
         
@@ -167,38 +133,38 @@ class UserService {
     try {
       // Only include Updateable fields
       const params = {
-        records: [
-          {
-            Id: parseInt(id),
-            Name: userData.Name || userData.name,
-            email: userData.email,
-            role: userData.role,
-            credits: userData.credits,
-            createdAt: userData.createdAt
-          }
-        ]
+        records: [{
+          Id: id,
+          Name: userData.Name,
+          Tags: userData.Tags,
+          Owner: parseInt(userData.Owner?.Id || userData.Owner),
+          email: userData.email,
+          role: userData.role,
+          credits: parseInt(userData.credits) || 0,
+          createdAt: userData.createdAt,
+          password: userData.password
+        }]
       };
-      
+
       const response = await this.apperClient.updateRecord(this.tableName, params);
       
       if (!response.success) {
         console.error(response.message);
-        toast.error(response.message);
         return null;
       }
-      
+
       if (response.results) {
         const successfulUpdates = response.results.filter(result => result.success);
         const failedUpdates = response.results.filter(result => !result.success);
         
         if (failedUpdates.length > 0) {
-          console.error(`Failed to update user ${failedUpdates.length} records:${JSON.stringify(failedUpdates)}`);
+          console.error(`Failed to update ${failedUpdates.length} user records:${JSON.stringify(failedUpdates)}`);
           
           failedUpdates.forEach(record => {
             record.errors?.forEach(error => {
-              toast.error(`${error.fieldLabel}: ${error.message}`);
+              console.error(`${error.fieldLabel}: ${error.message}`);
             });
-            if (record.message) toast.error(record.message);
+            if (record.message) console.error(record.message);
           });
         }
         
@@ -216,42 +182,40 @@ class UserService {
 
   async delete(recordIds) {
     try {
-      const ids = Array.isArray(recordIds) ? recordIds : [recordIds];
       const params = {
-        RecordIds: ids.map(id => parseInt(id))
+        RecordIds: Array.isArray(recordIds) ? recordIds : [recordIds]
       };
-      
+
       const response = await this.apperClient.deleteRecord(this.tableName, params);
       
       if (!response.success) {
         console.error(response.message);
-        toast.error(response.message);
         return false;
       }
-      
+
       if (response.results) {
         const successfulDeletions = response.results.filter(result => result.success);
         const failedDeletions = response.results.filter(result => !result.success);
         
         if (failedDeletions.length > 0) {
-          console.error(`Failed to delete user ${failedDeletions.length} records:${JSON.stringify(failedDeletions)}`);
+          console.error(`Failed to delete ${failedDeletions.length} user records:${JSON.stringify(failedDeletions)}`);
           
           failedDeletions.forEach(record => {
-            if (record.message) toast.error(record.message);
+            if (record.message) console.error(record.message);
           });
         }
         
-        return successfulDeletions.length === ids.length;
+        return successfulDeletions.length === params.RecordIds.length;
       }
     } catch (error) {
       if (error?.response?.data?.message) {
-        console.error("Error deleting user:", error?.response?.data?.message);
+        console.error("Error deleting users:", error?.response?.data?.message);
       } else {
         console.error(error.message);
       }
       return false;
     }
-  }
+}
 }
 
 export const userService = new UserService();

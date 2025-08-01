@@ -1,8 +1,8 @@
-import { toast } from 'react-toastify';
 import { openaiService } from "@/services/api/openaiService";
 
 class QueryService {
   constructor() {
+    // Initialize ApperClient with Project ID and Public Key
     const { ApperClient } = window.ApperSDK;
     this.apperClient = new ApperClient({
       apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
@@ -16,6 +16,8 @@ class QueryService {
       const params = {
         fields: [
           { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "Owner" } },
           { field: { Name: "subject" } },
           { field: { Name: "question" } },
           { field: { Name: "response" } },
@@ -41,7 +43,6 @@ class QueryService {
       
       if (!response.success) {
         console.error(response.message);
-        toast.error(response.message);
         return [];
       }
 
@@ -56,11 +57,13 @@ class QueryService {
     }
   }
 
-  async getById(recordId) {
+  async getById(id) {
     try {
       const params = {
         fields: [
           { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "Owner" } },
           { field: { Name: "subject" } },
           { field: { Name: "question" } },
           { field: { Name: "response" } },
@@ -75,17 +78,18 @@ class QueryService {
           { field: { Name: "expertId" } }
         ]
       };
+
+      const response = await this.apperClient.getRecordById(this.tableName, id, params);
       
-      const response = await this.apperClient.getRecordById(this.tableName, recordId, params);
-      
-      if (!response || !response.data) {
+      if (!response.success) {
+        console.error(response.message);
         return null;
-      } else {
-        return response.data;
       }
+
+      return response.data;
     } catch (error) {
       if (error?.response?.data?.message) {
-        console.error(`Error fetching query with ID ${recordId}:`, error?.response?.data?.message);
+        console.error(`Error fetching query with ID ${id}:`, error?.response?.data?.message);
       } else {
         console.error(error.message);
       }
@@ -93,17 +97,174 @@ class QueryService {
     }
   }
 
-  async getByClient(clientId) {
+  async create(queryData) {
+    try {
+      // Only include Updateable fields
+      const params = {
+        records: [{
+          Name: queryData.Name,
+          Tags: queryData.Tags,
+          Owner: parseInt(queryData.Owner?.Id || queryData.Owner),
+          subject: queryData.subject,
+          question: queryData.question,
+          response: queryData.response,
+          sources: queryData.sources,
+          timestamp: queryData.timestamp || new Date().toISOString(),
+          creditsUsed: parseInt(queryData.creditsUsed) || 0,
+          embedding: queryData.embedding,
+          aiMetadata: queryData.aiMetadata,
+          isFromFallback: queryData.isFromFallback === true || queryData.isFromFallback === "true",
+          error: queryData.error,
+          clientId: parseInt(queryData.clientId?.Id || queryData.clientId),
+          expertId: parseInt(queryData.expertId?.Id || queryData.expertId)
+        }]
+      };
+
+      const response = await this.apperClient.createRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        return null;
+      }
+
+      if (response.results) {
+        const successfulRecords = response.results.filter(result => result.success);
+        const failedRecords = response.results.filter(result => !result.success);
+        
+        if (failedRecords.length > 0) {
+          console.error(`Failed to create ${failedRecords.length} query records:${JSON.stringify(failedRecords)}`);
+          
+          failedRecords.forEach(record => {
+            record.errors?.forEach(error => {
+              console.error(`${error.fieldLabel}: ${error.message}`);
+            });
+            if (record.message) console.error(record.message);
+          });
+        }
+        
+        return successfulRecords.length > 0 ? successfulRecords[0].data : null;
+      }
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error creating query:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      return null;
+    }
+  }
+
+  async update(id, queryData) {
+    try {
+      // Only include Updateable fields
+      const params = {
+        records: [{
+          Id: id,
+          Name: queryData.Name,
+          Tags: queryData.Tags,
+          Owner: parseInt(queryData.Owner?.Id || queryData.Owner),
+          subject: queryData.subject,
+          question: queryData.question,
+          response: queryData.response,
+          sources: queryData.sources,
+          timestamp: queryData.timestamp,
+          creditsUsed: parseInt(queryData.creditsUsed) || 0,
+          embedding: queryData.embedding,
+          aiMetadata: queryData.aiMetadata,
+          isFromFallback: queryData.isFromFallback === true || queryData.isFromFallback === "true",
+          error: queryData.error,
+          clientId: parseInt(queryData.clientId?.Id || queryData.clientId),
+          expertId: parseInt(queryData.expertId?.Id || queryData.expertId)
+        }]
+      };
+
+      const response = await this.apperClient.updateRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        return null;
+      }
+
+      if (response.results) {
+        const successfulUpdates = response.results.filter(result => result.success);
+        const failedUpdates = response.results.filter(result => !result.success);
+        
+        if (failedUpdates.length > 0) {
+          console.error(`Failed to update ${failedUpdates.length} query records:${JSON.stringify(failedUpdates)}`);
+          
+          failedUpdates.forEach(record => {
+            record.errors?.forEach(error => {
+              console.error(`${error.fieldLabel}: ${error.message}`);
+            });
+            if (record.message) console.error(record.message);
+          });
+        }
+        
+        return successfulUpdates.length > 0 ? successfulUpdates[0].data : null;
+      }
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error updating query:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      return null;
+    }
+  }
+
+  async delete(recordIds) {
+    try {
+      const params = {
+        RecordIds: Array.isArray(recordIds) ? recordIds : [recordIds]
+      };
+
+      const response = await this.apperClient.deleteRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        return false;
+      }
+
+      if (response.results) {
+        const successfulDeletions = response.results.filter(result => result.success);
+        const failedDeletions = response.results.filter(result => !result.success);
+        
+        if (failedDeletions.length > 0) {
+          console.error(`Failed to delete ${failedDeletions.length} query records:${JSON.stringify(failedDeletions)}`);
+          
+          failedDeletions.forEach(record => {
+            if (record.message) console.error(record.message);
+          });
+        }
+        
+        return successfulDeletions.length === params.RecordIds.length;
+      }
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error deleting queries:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      return false;
+    }
+  }
+async getByClient(clientId) {
     try {
       const params = {
         fields: [
           { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "Owner" } },
           { field: { Name: "subject" } },
           { field: { Name: "question" } },
           { field: { Name: "response" } },
           { field: { Name: "sources" } },
           { field: { Name: "timestamp" } },
           { field: { Name: "creditsUsed" } },
+          { field: { Name: "embedding" } },
+          { field: { Name: "aiMetadata" } },
+          { field: { Name: "isFromFallback" } },
+          { field: { Name: "error" } },
           { field: { Name: "clientId" } },
           { field: { Name: "expertId" } }
         ],
@@ -187,28 +348,25 @@ class QueryService {
     }
   }
 
-  async create(queryData) {
+  async createWithAI(queryData) {
     try {
       let aiResponse, queryEmbedding;
       let isFromFallback = false;
       let errorMessage = null;
       
       try {
-        // Generate AI response using OpenAI
         aiResponse = await openaiService.generateResponse(
           queryData.question,
-          '', // Context can be added here if available
+          '',
           queryData.subject
         );
 
-        // Create embedding for the query for future similarity search
         queryEmbedding = await openaiService.createEmbedding(queryData.question);
       } catch (error) {
         console.error('Error creating AI response:', error);
         isFromFallback = true;
         errorMessage = error.message;
         
-        // Fallback to mock response if OpenAI fails
         const fallbackResponses = {
           "Leadership": "Based on leadership best practices, I recommend focusing on developing your emotional intelligence, communication skills, and decision-making abilities. Start by setting clear expectations, providing regular feedback, and leading by example. Remember that great leaders inspire others through their actions and vision.",
           "Business Strategy": "For effective business strategy, begin with a thorough market analysis and competitive assessment. Define your unique value proposition and identify your target customer segments. Develop strategic objectives that align with your mission and create measurable milestones to track progress.",
@@ -227,7 +385,6 @@ class QueryService {
         ["Expert Knowledge Base", "Professional Development Resources", "Industry Best Practices"] :
         ["AI-Generated Response", "Expert Knowledge Integration", "Professional Best Practices"];
       
-      // Only include Updateable fields
       const params = {
         records: [
           {
@@ -256,7 +413,6 @@ class QueryService {
       
       if (!response.success) {
         console.error(response.message);
-        toast.error(response.message);
         return null;
       }
       
@@ -269,9 +425,9 @@ class QueryService {
           
           failedRecords.forEach(record => {
             record.errors?.forEach(error => {
-              toast.error(`${error.fieldLabel}: ${error.message}`);
+              console.error(`${error.fieldLabel}: ${error.message}`);
             });
-            if (record.message) toast.error(record.message);
+            if (record.message) console.error(record.message);
           });
         }
         
@@ -339,104 +495,6 @@ class QueryService {
     } catch (error) {
       console.error('Error finding similar queries:', error);
       return [];
-    }
-  }
-
-  async update(id, queryData) {
-    try {
-      // Only include Updateable fields
-      const params = {
-        records: [
-          {
-            Id: parseInt(id),
-            Name: queryData.Name,
-            subject: queryData.subject,
-            question: queryData.question,
-            response: queryData.response,
-            sources: Array.isArray(queryData.sources) ? queryData.sources.join(',') : queryData.sources,
-            timestamp: queryData.timestamp,
-            creditsUsed: queryData.creditsUsed,
-            embedding: queryData.embedding ? JSON.stringify(queryData.embedding) : null,
-            aiMetadata: queryData.aiMetadata ? JSON.stringify(queryData.aiMetadata) : null,
-            isFromFallback: queryData.isFromFallback,
-            error: queryData.error,
-            clientId: parseInt(queryData.clientId),
-            expertId: parseInt(queryData.expertId)
-          }
-        ]
-      };
-      
-      const response = await this.apperClient.updateRecord(this.tableName, params);
-      
-      if (!response.success) {
-        console.error(response.message);
-        toast.error(response.message);
-        return null;
-      }
-      
-      if (response.results) {
-        const successfulUpdates = response.results.filter(result => result.success);
-        const failedUpdates = response.results.filter(result => !result.success);
-        
-        if (failedUpdates.length > 0) {
-          console.error(`Failed to update query ${failedUpdates.length} records:${JSON.stringify(failedUpdates)}`);
-          
-          failedUpdates.forEach(record => {
-            record.errors?.forEach(error => {
-              toast.error(`${error.fieldLabel}: ${error.message}`);
-            });
-            if (record.message) toast.error(record.message);
-          });
-        }
-        
-        return successfulUpdates.length > 0 ? successfulUpdates[0].data : null;
-      }
-    } catch (error) {
-      if (error?.response?.data?.message) {
-        console.error("Error updating query:", error?.response?.data?.message);
-      } else {
-        console.error(error.message);
-      }
-      return null;
-    }
-  }
-
-  async delete(recordIds) {
-    try {
-      const ids = Array.isArray(recordIds) ? recordIds : [recordIds];
-      const params = {
-        RecordIds: ids.map(id => parseInt(id))
-      };
-      
-      const response = await this.apperClient.deleteRecord(this.tableName, params);
-      
-      if (!response.success) {
-        console.error(response.message);
-        toast.error(response.message);
-        return false;
-      }
-      
-      if (response.results) {
-        const successfulDeletions = response.results.filter(result => result.success);
-        const failedDeletions = response.results.filter(result => !result.success);
-        
-        if (failedDeletions.length > 0) {
-          console.error(`Failed to delete query ${failedDeletions.length} records:${JSON.stringify(failedDeletions)}`);
-          
-          failedDeletions.forEach(record => {
-            if (record.message) toast.error(record.message);
-          });
-        }
-        
-        return successfulDeletions.length === ids.length;
-      }
-    } catch (error) {
-      if (error?.response?.data?.message) {
-        console.error("Error deleting query:", error?.response?.data?.message);
-      } else {
-        console.error(error.message);
-      }
-      return false;
     }
   }
 

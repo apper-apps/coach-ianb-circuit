@@ -98,8 +98,8 @@ function App() {
           dispatch(clearUser());
         }
       },
-      onError: function(error) {
-        console.error("Authentication failed:", error);
+onError: function(error) {
+        console.error("Authentication failed:", error?.message || error || "Unknown authentication error");
       }
     });
   }, []);// No props and state should be bound

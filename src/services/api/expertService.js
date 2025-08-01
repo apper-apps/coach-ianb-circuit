@@ -236,16 +236,13 @@ async getByUserId(userId) {
           { field: { Name: "contentCount" } },
           { field: { Name: "userId" } }
         ],
-        filter: {
-          FilterType: 1,
-          FilterConditions: [
-            {
-              fieldName: "userId",
-              operator: "EqualTo",
-              value: parseInt(userId)
-            }
-          ]
-        }
+        where: [
+          {
+            FieldName: "userId",
+            Operator: "EqualTo",
+            Values: [parseInt(userId)]
+          }
+        ]
       };
 
       const response = await this.apperClient.fetchRecords(this.tableName, params);

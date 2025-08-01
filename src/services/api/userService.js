@@ -250,12 +250,13 @@ createdAt: userData.createdAt,
         ]
       };
 
-      const { ApperClient } = window.ApperSDK;
+const { ApperClient } = window.ApperSDK;
       const apperClient = new ApperClient({
         apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
         apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
       });
-const existingAdmin = await apperClient.fetchRecords(this.tableName, params);
+
+      const existingAdmin = await apperClient.fetchRecords(this.tableName, params);
       if (existingAdmin.success && existingAdmin.data && existingAdmin.data.length > 0) {
         console.log("Default admin user already exists");
         return existingAdmin.data[0];

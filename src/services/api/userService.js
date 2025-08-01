@@ -37,12 +37,16 @@ class UserService {
       }
 
       return response.data || [];
-    } catch (error) {
-      if (error?.response?.data?.message) {
-        console.error("Error fetching users:", error?.response?.data?.message);
-      } else {
-        console.error(error.message);
+} catch (error) {
+      let errorMessage = "Failed to fetch users";
+      if (error?.response?.data?.message && error.response.data.message.trim()) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message && error.message.trim()) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string' && error.trim()) {
+        errorMessage = error;
       }
+      console.error("Error fetching users:", errorMessage);
       return [];
     }
   }
@@ -70,11 +74,15 @@ class UserService {
 
       return response.data;
 } catch (error) {
-      if (error?.response?.data?.message) {
-        console.error(`Error fetching user with ID ${id}:`, error?.response?.data?.message);
-      } else {
-        console.error(error.message);
+      let errorMessage = `Failed to fetch user with ID ${id}`;
+      if (error?.response?.data?.message && error.response.data.message.trim()) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message && error.message.trim()) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string' && error.trim()) {
+        errorMessage = error;
       }
+      console.error(`Error fetching user with ID ${id}:`, errorMessage);
       return null;
     }
   }
@@ -118,12 +126,16 @@ if (failedRecords.length > 0) {
         
         return successfulRecords.length > 0 ? successfulRecords[0].data : null;
       }
-    } catch (error) {
-      if (error?.response?.data?.message) {
-        console.error("Error creating user:", error?.response?.data?.message);
-      } else {
-        console.error(error.message);
+} catch (error) {
+      let errorMessage = "Failed to create user";
+      if (error?.response?.data?.message && error.response.data.message.trim()) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message && error.message.trim()) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string' && error.trim()) {
+        errorMessage = error;
       }
+      console.error("Error creating user:", errorMessage);
       return null;
     }
   }
@@ -167,13 +179,17 @@ if (failedUpdates.length > 0) {
         }
         
         return successfulUpdates.length > 0 ? successfulUpdates[0].data : null;
-      }
+}
     } catch (error) {
-      if (error?.response?.data?.message) {
-        console.error("Error updating user:", error?.response?.data?.message);
-      } else {
-        console.error(error.message);
+      let errorMessage = "Failed to update user";
+      if (error?.response?.data?.message && error.response.data.message.trim()) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message && error.message.trim()) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string' && error.trim()) {
+        errorMessage = error;
       }
+      console.error("Error updating user:", errorMessage);
       return null;
     }
   }
@@ -205,13 +221,17 @@ if (failedDeletions.length > 0) {
         return successfulDeletions.length === params.RecordIds.length;
       }
       
-      return true;
+return true;
     } catch (error) {
-      if (error?.response?.data?.message) {
-        console.error("Error deleting users:", error?.response?.data?.message);
-      } else {
-        console.error(error.message);
+      let errorMessage = "Failed to delete users";
+      if (error?.response?.data?.message && error.response.data.message.trim()) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message && error.message.trim()) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string' && error.trim()) {
+        errorMessage = error;
       }
+      console.error("Error deleting users:", errorMessage);
       return false;
     }
   }
@@ -277,12 +297,20 @@ const existingAdmin = await this.apperClient.fetchRecords(this.tableName, params
         });
         console.log("Default admin user created successfully");
         return newAdmin;
-      }
+}
     } catch (error) {
-      console.error("Error creating default admin:", error);
+      let errorMessage = "Failed to create default admin user";
+      if (error?.response?.data?.message && error.response.data.message.trim()) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message && error.message.trim()) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string' && error.trim()) {
+        errorMessage = error;
+      }
+      console.error("Error creating default admin:", errorMessage);
       // Import toast here to avoid circular dependencies
       const { toast } = await import('react-toastify');
-      toast.error("Failed to create default admin user");
+      toast.error(errorMessage);
     }
   }
 }

@@ -100,22 +100,24 @@ function App() {
       },
 onError: function(error) {
         // Enhanced error handling to deal with various error object structures
-        let errorMessage = "Unknown authentication error";
+        let errorMessage = "Authentication failed. Please try again.";
         
         if (error) {
-          if (typeof error === 'string') {
+          if (typeof error === 'string' && error.trim()) {
             errorMessage = error;
-          } else if (error.message) {
+          } else if (error.message && error.message.trim()) {
             errorMessage = error.message;
-          } else if (error.error) {
+          } else if (error.error && error.error.trim()) {
             errorMessage = error.error;
-          } else if (error.stack && error.stack.length > 0) {
-            errorMessage = "Authentication error occurred";
+          } else if (error.stack && Array.isArray(error.stack) && error.stack.length > 0) {
+            errorMessage = "Authentication error occurred. Please check your credentials.";
+          } else if (typeof error === 'object' && Object.keys(error).length > 0) {
+            errorMessage = "Authentication service error. Please try again later.";
           }
         }
         
         console.error("Authentication failed:", errorMessage);
-        console.error("Full error object:", error);
+        console.error("Full error object:", JSON.stringify(error, null, 2));
       }
     });
   }, []);// No props and state should be bound

@@ -9,6 +9,7 @@ import QueryInterface from "@/components/pages/QueryInterface";
 import UploadCenter from "@/components/pages/UploadCenter";
 import Analytics from "@/components/pages/Analytics";
 import AccountSettings from "@/components/pages/AccountSettings";
+import UserManagement from "@/components/pages/UserManagement";
 import { useState } from "react";
 
 function App() {
@@ -80,12 +81,13 @@ function App() {
             )}
             
             {/* Super Admin Routes */}
-            {currentUser.role === "super_admin" && (
+{currentUser.role === "super_admin" && (
               <>
                 <Route path="/" element={<SuperAdminDashboard currentUser={currentUser} />} />
                 <Route path="/chat" element={<QueryInterface currentUser={currentUser} />} />
                 <Route path="/uploads" element={<UploadCenter currentUser={currentUser} />} />
                 <Route path="/analytics" element={<Analytics currentUser={currentUser} />} />
+                <Route path="/users" element={<UserManagement currentUser={currentUser} />} />
                 <Route path="/account" element={<AccountSettings currentUser={currentUser} />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </>

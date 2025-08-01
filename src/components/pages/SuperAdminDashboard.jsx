@@ -72,12 +72,19 @@ const SuperAdminDashboard = ({ currentUser }) => {
   const smeUsers = users.filter(u => u.role === "sme");
   const recentContent = allContent.slice(0, 5);
 
-  const quickActions = [
+const quickActions = [
     {
       title: "System Chat Test",
       description: "Test the AI query system",
       icon: "MessageCircle",
       action: () => navigate("/chat"),
+      color: "primary"
+    },
+    {
+      title: "Manage Users",
+      description: "Set up SME accounts and passwords",
+      icon: "UserGroup",
+      action: () => navigate("/users"),
       color: "primary"
     },
     {

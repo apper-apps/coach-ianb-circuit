@@ -81,7 +81,7 @@ class ContentService {
       }
 
       return response.data;
-    } catch (error) {
+} catch (error) {
       if (error?.response?.data?.message) {
         console.error(`Error fetching content with ID ${id}:`, error?.response?.data?.message);
       } else {
@@ -245,10 +245,10 @@ async delete(recordIds) {
         
         return successfulDeletions.length === ids.length;
       }
-    } catch (error) {
+} catch (error) {
       if (error?.response?.data?.message) {
         console.error("Error deleting content:", error?.response?.data?.message);
-} else {
+      } else {
         console.error(error.message);
       }
       return false;
@@ -367,7 +367,7 @@ async delete(recordIds) {
       };
       
       return await this.update(id, updateData);
-    } catch (error) {
+} catch (error) {
       if (error?.response?.data?.message) {
         console.error("Error updating transcription:", error?.response?.data?.message);
       } else {

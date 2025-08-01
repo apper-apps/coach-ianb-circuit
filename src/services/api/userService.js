@@ -69,7 +69,7 @@ class UserService {
       }
 
       return response.data;
-    } catch (error) {
+} catch (error) {
       if (error?.response?.data?.message) {
         console.error(`Error fetching user with ID ${id}:`, error?.response?.data?.message);
       } else {
@@ -106,9 +106,8 @@ class UserService {
         const successfulRecords = response.results.filter(result => result.success);
         const failedRecords = response.results.filter(result => !result.success);
         
-        if (failedRecords.length > 0) {
-          console.error(`Failed to create ${failedRecords.length} user records:${JSON.stringify(failedRecords)}`);
-          
+if (failedRecords.length > 0) {
+          console.error(`Failed to create ${failedRecords.length} user records: ${JSON.stringify(failedRecords)}`);
           failedRecords.forEach(record => {
             record.errors?.forEach(error => {
               console.error(`${error.fieldLabel}: ${error.message}`);
@@ -140,8 +139,8 @@ class UserService {
           Owner: parseInt(userData.Owner?.Id || userData.Owner),
           email: userData.email,
           role: userData.role,
-          credits: parseInt(userData.credits) || 0,
-createdAt: userData.createdAt,
+credits: parseInt(userData.credits) || 0,
+          createdAt: userData.createdAt,
           password: userData.password
         }]
       };
@@ -157,9 +156,8 @@ createdAt: userData.createdAt,
         const successfulUpdates = response.results.filter(result => result.success);
         const failedUpdates = response.results.filter(result => !result.success);
         
-        if (failedUpdates.length > 0) {
-          console.error(`Failed to update ${failedUpdates.length} user records:${JSON.stringify(failedUpdates)}`);
-          
+if (failedUpdates.length > 0) {
+          console.error(`Failed to update ${failedUpdates.length} user records: ${JSON.stringify(failedUpdates)}`);
           failedUpdates.forEach(record => {
             record.errors?.forEach(error => {
               console.error(`${error.fieldLabel}: ${error.message}`);
@@ -197,9 +195,8 @@ createdAt: userData.createdAt,
         const successfulDeletions = response.results.filter(result => result.success);
         const failedDeletions = response.results.filter(result => !result.success);
         
-        if (failedDeletions.length > 0) {
-          console.error(`Failed to delete ${failedDeletions.length} user records:${JSON.stringify(failedDeletions)}`);
-          
+if (failedDeletions.length > 0) {
+          console.error(`Failed to delete ${failedDeletions.length} user records: ${JSON.stringify(failedDeletions)}`);
           failedDeletions.forEach(record => {
             if (record.message) console.error(record.message);
           });
@@ -249,14 +246,7 @@ createdAt: userData.createdAt,
           }
         ]
       };
-
-const { ApperClient } = window.ApperSDK;
-      const apperClient = new ApperClient({
-        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-      });
-
-      const existingAdmin = await apperClient.fetchRecords(this.tableName, params);
+const existingAdmin = await this.apperClient.fetchRecords(this.tableName, params);
       if (existingAdmin.success && existingAdmin.data && existingAdmin.data.length > 0) {
         console.log("Default admin user already exists");
         return existingAdmin.data[0];

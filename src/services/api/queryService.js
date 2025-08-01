@@ -87,7 +87,7 @@ class QueryService {
       }
 
       return response.data;
-    } catch (error) {
+} catch (error) {
       if (error?.response?.data?.message) {
         console.error(`Error fetching query with ID ${id}:`, error?.response?.data?.message);
       } else {
@@ -202,7 +202,7 @@ class QueryService {
         
         return successfulUpdates.length > 0 ? successfulUpdates[0].data : null;
       }
-    } catch (error) {
+} catch (error) {
       if (error?.response?.data?.message) {
         console.error("Error updating query:", error?.response?.data?.message);
       } else {
@@ -247,7 +247,7 @@ class QueryService {
       }
       return false;
     }
-  }
+}
 async getByClient(clientId) {
     try {
       const params = {
@@ -291,7 +291,7 @@ async getByClient(clientId) {
       }
 
       return response.data || [];
-    } catch (error) {
+} catch (error) {
       if (error?.response?.data?.message) {
         console.error("Error fetching queries by client:", error?.response?.data?.message);
       } else {
@@ -300,7 +300,6 @@ async getByClient(clientId) {
       return [];
     }
   }
-
   async getByExpert(expertId) {
     try {
       const params = {

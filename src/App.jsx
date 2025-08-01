@@ -135,7 +135,7 @@ return (
           <Route path="/reset-password/:appId/:fields" element={<ResetPassword />} />
           
           {/* Protected Routes */}
-          {isAuthenticated && currentUser && (
+{isAuthenticated && currentUser && (
             <>
               {/* Client Routes */}
               {currentUser.role === "client" && (
@@ -163,6 +163,16 @@ return (
                   <Route path="/chat" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><QueryInterface currentUser={currentUser} /></Layout>} />
                   <Route path="/uploads" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><UploadCenter currentUser={currentUser} /></Layout>} />
                   <Route path="/analytics" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><Analytics currentUser={currentUser} /></Layout>} />
+                  <Route path="/account" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><AccountSettings currentUser={currentUser} /></Layout>} />
+                </>
+              )}
+              
+              {/* Fallback Routes - Prevent blank screen for role mismatches */}
+              {currentUser.role !== "client" && currentUser.role !== "sme" && currentUser.role !== "super_admin" && (
+                <>
+                  {console.warn("User role not recognized:", currentUser.role, "Defaulting to query interface")}
+                  <Route path="/" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><QueryInterface currentUser={currentUser} /></Layout>} />
+                  <Route path="/chat" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><QueryInterface currentUser={currentUser} /></Layout>} />
                   <Route path="/account" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><AccountSettings currentUser={currentUser} /></Layout>} />
                 </>
               )}

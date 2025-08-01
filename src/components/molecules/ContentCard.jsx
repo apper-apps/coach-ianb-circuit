@@ -56,15 +56,28 @@ const ContentCard = ({
           </Badge>
         </div>
         
-        <div className="space-y-2">
+<div className="space-y-2">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <ApperIcon name="Tag" className="w-4 h-4" />
             <span>{content.subject}</span>
           </div>
           
+          {content.hasTranscription && (
+            <div className="flex items-center space-x-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+              <ApperIcon name="FileAudio" className="w-3 h-3" />
+              <span>Transcription available</span>
+            </div>
+          )}
+          
           {content.metadata?.description && (
             <p className="text-sm text-gray-600 line-clamp-2">
               {content.metadata.description}
+            </p>
+          )}
+          
+          {content.transcription && !content.metadata?.description && (
+            <p className="text-sm text-gray-600 line-clamp-2">
+              {content.transcription.text}
             </p>
           )}
         </div>

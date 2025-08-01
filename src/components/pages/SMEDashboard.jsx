@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { contentService } from "@/services/api/contentService";
 import ApperIcon from "@/components/ApperIcon";
-import Button from "@/components/atoms/Button";
-import Card from "@/components/atoms/Card";
-import Badge from "@/components/atoms/Badge";
+import ContentCard from "@/components/molecules/ContentCard";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
-import ContentCard from "@/components/molecules/ContentCard";
-import { contentService } from "@/services/api/contentService";
+import Badge from "@/components/atoms/Badge";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
 
 const SMEDashboard = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -60,10 +60,10 @@ const SMEDashboard = ({ currentUser }) => {
     }
   ];
 
-  const quickActions = [
+const quickActions = [
     {
       title: "Upload New Content",
-      description: "Add videos, PDFs, or audio files",
+      description: "Add videos, PDFs, audio files with auto-transcription",
       icon: "Upload",
       action: () => navigate("/uploads"),
       color: "primary"
@@ -113,14 +113,13 @@ const SMEDashboard = ({ currentUser }) => {
         </div>
         
         <div className="mt-6">
-          <Button
+<Button
             onClick={() => navigate("/uploads")}
             className="bg-white text-secondary-700 hover:bg-gray-50"
           >
             <ApperIcon name="Upload" className="w-4 h-4 mr-2" />
-            Upload New Content
+            Upload Media & Files
           </Button>
-        </div>
       </div>
 
       {/* Stats Grid */}
@@ -210,7 +209,7 @@ const SMEDashboard = ({ currentUser }) => {
               </div>
             )}
           </Card>
-        </div>
+</div>
       </div>
     </div>
   );

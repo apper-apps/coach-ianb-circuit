@@ -1,344 +1,355 @@
-import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
-import ApperIcon from "@/components/ApperIcon";
-import Button from "@/components/atoms/Button";
-import Input from "@/components/atoms/Input";
-import Select from "@/components/atoms/Select";
-import Card from "@/components/atoms/Card";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
-import FileUploadZone from "@/components/molecules/FileUploadZone";
-import ContentCard from "@/components/molecules/ContentCard";
-import { contentService } from "@/services/api/contentService";
+import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import ApperIcon from '@/components/ApperIcon';
+import Button from '@/components/atoms/Button';
+import Card from '@/components/atoms/Card';
+import Input from '@/components/atoms/Input';
+import Select from '@/components/atoms/Select';
+import FileUploadZone from '@/components/molecules/FileUploadZone';
+import Loading from '@/components/ui/Loading';
+import { contentService } from '@/services/api/contentService';
+import { transcriptionService } from '@/services/api/transcriptionService';
 
 const UploadCenter = ({ currentUser }) => {
-  const [content, setContent] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploadLoading, setUploadLoading] = useState(false);
+  const navigate = useNavigate();
+  const [isUploading, setIsUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [uploadForm, setUploadForm] = useState({
-    title: "",
-    subject: "",
-    description: ""
+  const [transcriptionStatus, setTranscriptionStatus] = useState(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    subject: '',
+    description: '',
+    type: 'document'
   });
 
-  const loadContent = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      
-      const data = currentUser.role === "super_admin" 
-        ? await contentService.getAll()
-        : await contentService.getBySME(currentUser.Id);
-      
-      setContent(data);
-    } catch (err) {
-      setError("Failed to load content. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadContent();
-  }, [currentUser.Id, currentUser.role]);
-
-  const subjectOptions = [
-    { value: "Leadership", label: "Leadership & Management" },
-    { value: "Business Strategy", label: "Business Strategy" },
-    { value: "Personal Development", label: "Personal Development" },
-    { value: "Health & Wellness", label: "Health & Wellness" },
-    { value: "Technology", label: "Technology" },
-    { value: "Finance", label: "Finance" },
-    { value: "Marketing", label: "Marketing" },
-    { value: "Operations", label: "Operations" }
+  const subjects = [
+    'Mathematics', 'Science', 'Technology', 'Business', 'Arts', 'Language',
+    'History', 'Psychology', 'Medicine', 'Engineering', 'Finance', 'Marketing'
   ];
 
-  const handleFileSelect = (files) => {
-    setSelectedFiles(Array.isArray(files) ? files : [files]);
+  const handleFileSelect = useCallback((files) => {
+    setSelectedFiles(Array.from(files));
+    
+    // Check if any files need transcription
+    const hasMediaFiles = Array.from(files).some(file => 
+      file.type.startsWith('audio/') || file.type.startsWith('video/')
+    );
+    
+    if (hasMediaFiles) {
+      setTranscriptionStatus({ isProcessing: false });
+    }
+  }, []);
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleUploadFormChange = (e) => {
-    const { name, value } = e.target;
-    setUploadForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  const processTranscription = async (file) => {
+    if (!transcriptionService.isSupported(file.type)) {
+      return null;
+    }
 
-  const getFileType = (file) => {
-    const extension = file.name.split(".").pop().toLowerCase();
-    if (["pdf"].includes(extension)) return "pdf";
-    if (["mp4", "avi", "mov", "wmv"].includes(extension)) return "video";
-    if (["mp3", "wav", "m4a", "aac"].includes(extension)) return "audio";
-    if (["ppt", "pptx"].includes(extension)) return "ppt";
-    return "pdf"; // default
+    setTranscriptionStatus({ isProcessing: true });
+    
+    try {
+      const transcription = await transcriptionService.transcribeFile(file);
+      setTranscriptionStatus({ isProcessing: false });
+      toast.success(`Transcription completed for ${file.name}`);
+      return transcription;
+    } catch (error) {
+      setTranscriptionStatus({ isProcessing: false });
+      toast.error(`Transcription failed: ${error.message}`);
+      return null;
+    }
   };
 
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
-      toast.error("Please select files to upload");
+      toast.error('Please select files to upload');
       return;
     }
 
-    if (!uploadForm.title.trim()) {
-      toast.error("Please enter a title");
+    if (!formData.title.trim()) {
+      toast.error('Please provide a title');
       return;
     }
 
-    if (!uploadForm.subject) {
-      toast.error("Please select a subject");
+    if (!formData.subject) {
+      toast.error('Please select a subject');
       return;
     }
 
-    setUploadLoading(true);
+    setIsUploading(true);
 
     try {
       for (const file of selectedFiles) {
+        // Process transcription for media files
+        let transcription = null;
+        if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
+          transcription = await processTranscription(file);
+        }
+
+        // Create content entry
         const contentData = {
-          smeId: currentUser.Id,
-          title: selectedFiles.length === 1 ? uploadForm.title : `${uploadForm.title} - ${file.name}`,
-          type: getFileType(file),
-          fileUrl: `/uploads/${file.name}`,
-          subject: uploadForm.subject,
+          title: formData.title,
+          subject: formData.subject,
+          type: file.type.startsWith('video/') ? 'video' : 
+                file.type.startsWith('audio/') ? 'audio' : 'document',
+          expertId: currentUser?.Id || 1,
+          expertName: currentUser?.name || 'Expert User',
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          transcription,
           metadata: {
-            description: uploadForm.description,
-            fileName: file.name,
-            fileSize: file.size,
-            originalName: file.name
+            description: formData.description,
+            originalFileName: file.name,
+            uploadedBy: currentUser?.name || 'Expert User'
           }
         };
 
         await contentService.create(contentData);
       }
 
-      toast.success(`Successfully uploaded ${selectedFiles.length} file(s)!`);
-      setShowUploadModal(false);
+      toast.success(`Successfully uploaded ${selectedFiles.length} file(s)`);
+      
+      // Reset form
       setSelectedFiles([]);
-      setUploadForm({ title: "", subject: "", description: "" });
-      loadContent();
-    } catch (err) {
-      toast.error("Failed to upload files. Please try again.");
+      setFormData({
+        title: '',
+        subject: '',
+        description: '',
+        type: 'document'
+      });
+      setTranscriptionStatus(null);
+      
+      // Navigate back to dashboard
+      navigate('/sme-dashboard');
+      
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Upload failed. Please try again.');
     } finally {
-      setUploadLoading(false);
+      setIsUploading(false);
     }
   };
 
-  const handleDelete = async (contentItem) => {
-    if (!window.confirm("Are you sure you want to delete this content?")) {
-      return;
-    }
-
-    try {
-      await contentService.delete(contentItem.Id);
-      toast.success("Content deleted successfully!");
-      loadContent();
-    } catch (err) {
-      toast.error("Failed to delete content. Please try again.");
+  const removeFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    if (selectedFiles.length === 1) {
+      setTranscriptionStatus(null);
     }
   };
-
-  if (loading) {
-    return <Loading variant="cards" />;
-  }
-
-  if (error) {
-    return <Error message={error} onRetry={loadContent} />;
-  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {currentUser.role === "super_admin" ? "All Content" : "Content Library"}
+          <h1 className="text-2xl font-display font-bold text-gray-900">
+            Upload Content
           </h1>
           <p className="text-gray-600 mt-1">
-            {currentUser.role === "super_admin" 
-              ? `Manage all content across the platform (${content.length} items)`
-              : `Upload and manage your expert content (${content.length} items)`
-            }
+            Share your expertise with automatic transcription for audio and video files
           </p>
         </div>
-        <Button onClick={() => setShowUploadModal(true)}>
-          <ApperIcon name="Plus" className="w-4 h-4 mr-2" />
-          Upload Content
+        <Button
+          variant="secondary"
+          onClick={() => navigate('/sme-dashboard')}
+        >
+          <ApperIcon name="ArrowLeft" className="w-4 h-4 mr-2" />
+          Back to Dashboard
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[
-          {
-            label: "Total Files",
-            value: content.length,
-            icon: "FileText",
-            color: "primary"
-          },
-          {
-            label: "PDF Documents",
-            value: content.filter(c => c.type === "pdf").length,
-            icon: "FileText",
-            color: "error"
-          },
-          {
-            label: "Video Files",
-            value: content.filter(c => c.type === "video").length,
-            icon: "Video",
-            color: "secondary"
-          },
-          {
-            label: "Audio Files",
-            value: content.filter(c => c.type === "audio").length,
-            icon: "Mic",
-            color: "accent"
-          }
-        ].map((stat, index) => (
-          <Card key={index} className="text-center">
-            <div className={`w-12 h-12 bg-gradient-to-br from-${stat.color}-100 to-${stat.color}-200 rounded-full flex items-center justify-center mx-auto mb-4`}>
-              <ApperIcon name={stat.icon} className={`w-6 h-6 text-${stat.color}-600`} />
-            </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">
-              {stat.value}
-            </div>
-            <div className="text-sm text-gray-600">
-              {stat.label}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Upload Form */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Content Details
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title *
+                </label>
+                <Input
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  placeholder="Enter content title"
+                  disabled={isUploading}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Subject *
+                </label>
+                <Select
+                  value={formData.subject}
+                  onChange={(e) => handleInputChange('subject', e.target.value)}
+                  disabled={isUploading}
+                >
+                  <option value="">Select a subject</option>
+                  {subjects.map(subject => (
+                    <option key={subject} value={subject}>
+                      {subject}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  placeholder="Describe your content (optional)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  rows={3}
+                  disabled={isUploading}
+                />
+              </div>
             </div>
           </Card>
-        ))}
-      </div>
 
-      {/* Content Grid */}
-      {content.length === 0 ? (
-        <Empty
-          title="No content uploaded yet"
-          description="Start building your knowledge base by uploading your first piece of content."
-          icon="Upload"
-          action={() => setShowUploadModal(true)}
-          actionLabel="Upload Content"
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {content.map((item) => (
-            <ContentCard
-              key={item.Id}
-              content={item}
-              showActions={true}
-              onDelete={() => handleDelete(item)}
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              File Upload
+            </h2>
+            
+            <FileUploadZone
+              onFileSelect={handleFileSelect}
+              accept="*/*"
+              multiple={true}
+              showTranscriptionStatus={!!transcriptionStatus}
+              transcriptionStatus={transcriptionStatus}
+              disabled={isUploading}
             />
-          ))}
-        </div>
-      )}
 
-      {/* Upload Modal */}
-      {showUploadModal && (
-        <>
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={() => setShowUploadModal(false)} />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-semibold text-gray-900">Upload New Content</h2>
-                <Button variant="ghost" size="sm" onClick={() => setShowUploadModal(false)}>
-                  <ApperIcon name="X" className="w-5 h-5" />
-                </Button>
-              </div>
-
-              <div className="space-y-6">
-                {/* File Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Select Files
-                  </label>
-                  <FileUploadZone
-                    onFileSelect={handleFileSelect}
-                    accept=".pdf,.mp4,.avi,.mov,.wmv,.mp3,.wav,.m4a,.aac,.ppt,.pptx"
-                    multiple={true}
-                  />
-                  {selectedFiles.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                      <p className="text-sm font-medium text-gray-700">Selected Files:</p>
-                      {selectedFiles.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <span className="text-sm text-gray-900">{file.name}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== index))}
-                          >
-                            <ApperIcon name="X" className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
+            {selectedFiles.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <h3 className="text-sm font-medium text-gray-700">
+                  Selected Files ({selectedFiles.length})
+                </h3>
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <ApperIcon 
+                        name={
+                          file.type.startsWith('video/') ? 'Video' :
+                          file.type.startsWith('audio/') ? 'AudioLines' :
+                          file.type.includes('pdf') ? 'FileText' : 'File'
+                        } 
+                        className="w-4 h-4 text-gray-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {file.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                          {(file.type.startsWith('audio/') || file.type.startsWith('video/')) && 
+                            ' • Will be transcribed'
+                          }
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Content Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    name="title"
-                    label="Content Title"
-                    value={uploadForm.title}
-                    onChange={handleUploadFormChange}
-                    placeholder="Enter content title"
-                    required
-                  />
-
-                  <Select
-                    name="subject"
-                    label="Subject Area"
-                    value={uploadForm.subject}
-                    onChange={handleUploadFormChange}
-                    options={subjectOptions}
-                    placeholder="Select subject area"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description (Optional)
-                  </label>
-                  <textarea
-                    name="description"
-                    value={uploadForm.description}
-                    onChange={handleUploadFormChange}
-                    placeholder="Brief description of the content..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    rows="3"
-                  />
-                </div>
-
-                {/* Upload Actions */}
-                <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowUploadModal(false)}
-                    disabled={uploadLoading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleUpload}
-                    disabled={uploadLoading || selectedFiles.length === 0}
-                  >
-                    {uploadLoading ? (
-                      <ApperIcon name="Loader2" className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <ApperIcon name="Upload" className="w-4 h-4 mr-2" />
-                    )}
-                    {uploadLoading ? "Uploading..." : `Upload ${selectedFiles.length} File(s)`}
-                  </Button>
-                </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFile(index)}
+                      disabled={isUploading}
+                    >
+                      <ApperIcon name="X" className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
-            </Card>
-          </div>
-        </>
-      )}
+            )}
+          </Card>
+        </div>
+
+        {/* Upload Summary */}
+        <div className="space-y-6">
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Upload Summary
+            </h2>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Files selected:</span>
+                <span className="font-medium">{selectedFiles.length}</span>
+              </div>
+              
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Total size:</span>
+                <span className="font-medium">
+                  {selectedFiles.length > 0 
+                    ? `${(selectedFiles.reduce((acc, file) => acc + file.size, 0) / 1024 / 1024).toFixed(2)} MB`
+                    : '0 MB'
+                  }
+                </span>
+              </div>
+
+              {selectedFiles.some(file => file.type.startsWith('audio/') || file.type.startsWith('video/')) && (
+                <div className="flex items-center space-x-2 text-sm text-blue-600 bg-blue-50 p-2 rounded">
+                  <ApperIcon name="FileAudio" className="w-4 h-4" />
+                  <span>Auto-transcription enabled</span>
+                </div>
+              )}
+            </div>
+
+            <Button
+              onClick={handleUpload}
+              disabled={isUploading || selectedFiles.length === 0}
+              className="w-full mt-4"
+            >
+              {isUploading ? (
+                <>
+                  <ApperIcon name="Loader2" className="w-4 h-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <ApperIcon name="Upload" className="w-4 h-4 mr-2" />
+                  Upload Files
+                </>
+              )}
+            </Button>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              Supported Formats
+            </h3>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex items-center space-x-2">
+                <ApperIcon name="FileText" className="w-4 h-4" />
+                <span>Documents: PDF, DOC, DOCX</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <ApperIcon name="Video" className="w-4 h-4" />
+                <span>Videos: MP4, WebM, MOV</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <ApperIcon name="AudioLines" className="w-4 h-4" />
+                <span>Audio: MP3, WAV, M4A</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <ApperIcon name="Presentation" className="w-4 h-4" />
+                <span>Presentations: PPT, PPTX</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };

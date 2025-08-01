@@ -30,17 +30,37 @@ class ContentService {
     return this.content.filter(c => c.subject === subject).map(c => ({ ...c }));
   }
 
-  async create(contentData) {
+async create(contentData) {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const newContent = {
       ...contentData,
       Id: Math.max(...this.content.map(c => c.Id)) + 1,
-      uploadedAt: new Date().toISOString()
+      uploadedAt: new Date().toISOString(),
+      transcription: contentData.transcription || null,
+      hasTranscription: !!contentData.transcription
     };
     
     this.content.push(newContent);
     return { ...newContent };
+  }
+
+  async updateTranscription(id, transcriptionData) {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    const contentIndex = this.content.findIndex(c => c.Id === parseInt(id));
+    if (contentIndex === -1) {
+      throw new Error('Content not found');
+    }
+
+    this.content[contentIndex] = {
+      ...this.content[contentIndex],
+      transcription: transcriptionData,
+      hasTranscription: true,
+      transcriptionUpdatedAt: new Date().toISOString()
+    };
+
+    return { ...this.content[contentIndex] };
   }
 
   async update(id, contentData) {

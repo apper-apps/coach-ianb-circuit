@@ -8,6 +8,8 @@ const FileUploadZone = ({
   accept = "*/*", 
   multiple = false,
   className,
+  showTranscriptionStatus = false,
+  transcriptionStatus = null,
   ...props 
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -59,13 +61,32 @@ const FileUploadZone = ({
       {...props}
     >
       <input
-        ref={fileInputRef}
+ref={fileInputRef}
         type="file"
         accept={accept}
         multiple={multiple}
         onChange={handleFileSelect}
         className="hidden"
       />
+      
+      {showTranscriptionStatus && transcriptionStatus && (
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <ApperIcon 
+              name={transcriptionStatus.isProcessing ? "Loader2" : "FileAudio"} 
+              className={`w-4 h-4 text-blue-600 ${transcriptionStatus.isProcessing ? 'animate-spin' : ''}`} 
+            />
+            <span className="text-sm text-blue-800 font-medium">
+              {transcriptionStatus.isProcessing ? 'Transcribing audio/video...' : 'Transcription ready'}
+            </span>
+          </div>
+          {transcriptionStatus.isProcessing && (
+            <div className="mt-2 w-full bg-blue-200 rounded-full h-2">
+              <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+            </div>
+          )}
+        </div>
+      )}
       
       <div className="space-y-4">
         <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-full flex items-center justify-center mx-auto">
@@ -76,8 +97,11 @@ const FileUploadZone = ({
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Drop files here or click to browse
           </h3>
-          <p className="text-gray-600 text-sm">
+<p className="text-gray-600 text-sm">
             Supports PDFs, videos, audio files, and presentations
+          </p>
+          <p className="text-blue-600 text-xs mt-1">
+            Audio and video files will be automatically transcribed
           </p>
         </div>
         

@@ -448,7 +448,4 @@ class ContentService {
     }
   }
 }
-
-export const contentService = new ContentService();
-
 export const contentService = new ContentService();

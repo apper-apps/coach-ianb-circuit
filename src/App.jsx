@@ -99,7 +99,23 @@ function App() {
         }
       },
 onError: function(error) {
-        console.error("Authentication failed:", error?.message || error || "Unknown authentication error");
+        // Enhanced error handling to deal with various error object structures
+        let errorMessage = "Unknown authentication error";
+        
+        if (error) {
+          if (typeof error === 'string') {
+            errorMessage = error;
+          } else if (error.message) {
+            errorMessage = error.message;
+          } else if (error.error) {
+            errorMessage = error.error;
+          } else if (error.stack && error.stack.length > 0) {
+            errorMessage = "Authentication error occurred";
+          }
+        }
+        
+        console.error("Authentication failed:", errorMessage);
+        console.error("Full error object:", error);
       }
     });
   }, []);// No props and state should be bound

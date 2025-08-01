@@ -1,0 +1,144 @@
+{
+  "mockContent": [
+    {
+      "Id": 1,
+      "smeId": 1,
+      "title": "The Leadership Mindset: From Manager to Leader",
+      "type": "pdf",
+      "fileUrl": "/uploads/leadership-mindset.pdf",
+      "subject": "Leadership",
+      "uploadedAt": "2024-01-20T10:00:00Z",
+      "metadata": {
+        "description": "A comprehensive guide to developing the mindset shift required for effective leadership.",
+        "fileName": "leadership-mindset.pdf",
+        "fileSize": 2048000
+      }
+    },
+    {
+      "Id": 2,
+      "smeId": 1,
+      "title": "Performance Coaching Fundamentals",
+      "type": "video",
+      "fileUrl": "/uploads/performance-coaching-fundamentals.mp4",
+      "subject": "Performance Coaching",
+      "uploadedAt": "2024-01-22T14:30:00Z",
+      "metadata": {
+        "description": "Video series covering the core principles and techniques of performance coaching.",
+        "fileName": "performance-coaching-fundamentals.mp4",
+        "fileSize": 157286400
+      }
+    },
+    {
+      "Id": 3,
+      "smeId": 2,
+      "title": "Nutrition for Peak Performance",
+      "type": "pdf",
+      "fileUrl": "/uploads/nutrition-peak-performance.pdf",
+      "subject": "Nutrition",
+      "uploadedAt": "2024-01-25T09:15:00Z",
+      "metadata": {
+        "description": "Science-based nutritional strategies for optimizing mental and physical performance.",
+        "fileName": "nutrition-peak-performance.pdf",
+        "fileSize": 3145728
+      }
+    },
+    {
+      "Id": 4,
+      "smeId": 2,
+      "title": "Stress Management Techniques",
+      "type": "audio",
+      "fileUrl": "/uploads/stress-management-techniques.mp3",
+      "subject": "Stress Management",
+      "uploadedAt": "2024-01-28T11:45:00Z",
+      "metadata": {
+        "description": "Guided audio sessions teaching evidence-based stress reduction techniques.",
+        "fileName": "stress-management-techniques.mp3",
+        "fileSize": 25165824
+      }
+    },
+    {
+      "Id": 5,
+      "smeId": 3,
+      "title": "Strategic Business Planning Workshop",
+      "type": "ppt",
+      "fileUrl": "/uploads/strategic-business-planning.pptx",
+      "subject": "Business Strategy",
+      "uploadedAt": "2024-02-01T16:20:00Z",
+      "metadata": {
+        "description": "Interactive workshop materials for developing comprehensive business strategies.",
+        "fileName": "strategic-business-planning.pptx",
+        "fileSize": 5242880
+      }
+    },
+    {
+      "Id": 6,
+      "smeId": 3,
+      "title": "Sales Psychology and Persuasion",
+      "type": "video",
+      "fileUrl": "/uploads/sales-psychology.mp4",
+      "subject": "Sales",
+      "uploadedAt": "2024-02-03T13:10:00Z",
+      "metadata": {
+        "description": "Understanding the psychological principles behind effective sales and persuasion.",
+        "fileName": "sales-psychology.mp4",
+        "fileSize": 209715200
+      }
+    },
+    {
+      "Id": 7,
+      "smeId": 4,
+      "title": "Digital Transformation Roadmap",
+      "type": "pdf",
+      "fileUrl": "/uploads/digital-transformation-roadmap.pdf",
+      "subject": "Digital Transformation",
+      "uploadedAt": "2024-02-05T10:30:00Z",
+      "metadata": {
+        "description": "Step-by-step guide for implementing digital transformation initiatives in organizations.",
+        "fileName": "digital-transformation-roadmap.pdf",
+        "fileSize": 4194304
+      }
+    },
+    {
+      "Id": 8,
+      "smeId": 4,
+      "title": "Agile Project Management Masterclass",
+      "type": "video",
+      "fileUrl": "/uploads/agile-project-management.mp4",
+      "subject": "Project Management",
+      "uploadedAt": "2024-02-08T15:45:00Z",
+      "metadata": {
+        "description": "Complete masterclass on implementing agile methodologies in project management.",
+        "fileName": "agile-project-management.mp4",
+        "fileSize": 314572800
+      }
+    },
+    {
+      "Id": 9,
+      "smeId": 1,
+      "title": "Building High-Performance Teams",
+      "type": "audio",
+      "fileUrl": "/uploads/high-performance-teams.mp3",
+      "subject": "Leadership",
+      "uploadedAt": "2024-02-10T12:00:00Z",
+      "metadata": {
+        "description": "Audio guide on creating and leading high-performance teams in any organization.",
+        "fileName": "high-performance-teams.mp3",
+        "fileSize": 31457280
+      }
+    },
+    {
+      "Id": 10,
+      "smeId": 2,
+      "title": "Mental Health in the Workplace",
+      "type": "ppt",
+      "fileUrl": "/uploads/workplace-mental-health.pptx",
+      "subject": "Mental Health",
+      "uploadedAt": "2024-02-12T08:30:00Z",
+      "metadata": {
+        "description": "Presentation on creating mentally healthy workplace environments and supporting employee wellbeing.",
+        "fileName": "workplace-mental-health.pptx",
+        "fileSize": 7340032
+      }
+    }
+  ]
+}

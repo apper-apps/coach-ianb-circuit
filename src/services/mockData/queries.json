@@ -1,0 +1,59 @@
+{
+  "mockQueries": [
+    {
+      "Id": 1,
+      "clientId": 5,
+      "expertId": 1,
+      "subject": "Leadership",
+      "question": "How can I improve my communication skills as a new manager?",
+      "response": "Effective communication as a new manager requires focus on three key areas: active listening, clear messaging, and emotional intelligence. Start by practicing active listening - give your full attention to team members, ask clarifying questions, and summarize what you've heard to ensure understanding. For clear messaging, structure your communications with a clear purpose, use simple language, and follow up in writing when necessary. Develop your emotional intelligence by being aware of your own emotions and those of others, and adapt your communication style accordingly.",
+      "sources": ["The Leadership Mindset: From Manager to Leader", "Building High-Performance Teams"],
+      "timestamp": "2024-02-15T10:30:00Z",
+      "creditsUsed": 1
+    },
+    {
+      "Id": 2,
+      "clientId": 6,
+      "expertId": 2,
+      "subject": "Nutrition",
+      "question": "What are the best foods for sustained energy throughout the day?",
+      "response": "For sustained energy, focus on foods that provide steady blood sugar levels and sustained nutrient release. Complex carbohydrates like oats, quinoa, and sweet potatoes provide long-lasting energy. Combine these with lean proteins (fish, chicken, legumes) and healthy fats (avocados, nuts, olive oil) to slow digestion and maintain steady energy levels. Avoid refined sugars and processed foods that cause energy spikes and crashes. Stay hydrated and consider eating smaller, frequent meals every 3-4 hours to maintain consistent energy levels.",
+      "sources": ["Nutrition for Peak Performance"],
+      "timestamp": "2024-02-16T14:15:00Z",
+      "creditsUsed": 1
+    },
+    {
+      "Id": 3,
+      "clientId": 7,
+      "expertId": 3,
+      "subject": "Business Strategy",
+      "question": "How do I identify new market opportunities for my business?",
+      "response": "Identifying new market opportunities requires systematic market research and analysis. Start with customer analysis - survey existing customers about unmet needs and pain points. Conduct competitor analysis to identify gaps in the market. Use tools like SWOT analysis to assess your strengths and opportunities. Look for emerging trends in your industry through trade publications, industry reports, and social media monitoring. Consider adjacent markets where your existing capabilities could be valuable. Test new opportunities with small pilot programs before full investment.",
+      "sources": ["Strategic Business Planning Workshop"],
+      "timestamp": "2024-02-17T09:45:00Z",
+      "creditsUsed": 1
+    },
+    {
+      "Id": 4,
+      "clientId": 5,
+      "expertId": 4,
+      "subject": "Technology",
+      "question": "What are the key considerations for digital transformation in a traditional business?",
+      "response": "Digital transformation in traditional businesses requires careful planning and change management. Start with a clear digital strategy aligned with business objectives. Assess your current technology infrastructure and identify gaps. Prioritize customer-facing improvements that provide immediate value. Invest in employee training and change management - resistance to change is often the biggest barrier. Choose scalable, cloud-based solutions when possible. Start with pilot projects to prove value before larger investments. Ensure data security and compliance throughout the process.",
+      "sources": ["Digital Transformation Roadmap"],
+      "timestamp": "2024-02-18T16:20:00Z",
+      "creditsUsed": 1
+    },
+    {
+      "Id": 5,
+      "clientId": 6,
+      "expertId": 1,
+      "subject": "Personal Development",
+      "question": "How can I build better habits and break bad ones?",
+      "response": "Building better habits requires understanding the habit loop: cue, routine, reward. To build good habits, start small and be consistent - focus on 1-2 habits at a time. Stack new habits onto existing ones (habit stacking). Make good habits easy and obvious by designing your environment to support them. To break bad habits, identify the triggers and replace the routine with a positive alternative. Remove temptations from your environment. Use the '2-minute rule' - new habits should take less than 2 minutes initially. Track your progress and celebrate small wins.",
+      "sources": ["Performance Coaching Fundamentals"],
+      "timestamp": "2024-02-19T11:30:00Z",
+      "creditsUsed": 1
+    }
+  ]
+}

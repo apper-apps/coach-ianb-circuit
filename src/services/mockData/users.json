@@ -1,0 +1,60 @@
+{
+  "mockUsers": [
+    {
+      "Id": 1,
+      "email": "coach@ianb.ai",
+      "role": "super_admin",
+      "name": "Coach IanB",
+      "credits": 1000,
+      "createdAt": "2024-01-15T08:00:00Z"
+    },
+    {
+      "Id": 2,
+      "email": "sarah.chen@wellness.com",
+      "role": "sme",
+      "name": "Dr. Sarah Chen",
+      "credits": 0,
+      "createdAt": "2024-01-20T10:30:00Z"
+    },
+    {
+      "Id": 3,
+      "email": "mike.rodriguez@bizstrat.com",
+      "role": "sme",
+      "name": "Mike Rodriguez",
+      "credits": 0,
+      "createdAt": "2024-01-25T14:15:00Z"
+    },
+    {
+      "Id": 4,
+      "email": "emma.taylor@techcorp.com",
+      "role": "sme",
+      "name": "Emma Taylor",
+      "credits": 0,
+      "createdAt": "2024-02-01T09:45:00Z"
+    },
+    {
+      "Id": 5,
+      "email": "client1@example.com",
+      "role": "client",
+      "name": "Alex Johnson",
+      "credits": 150,
+      "createdAt": "2024-02-10T11:20:00Z"
+    },
+    {
+      "Id": 6,
+      "email": "client2@example.com",
+      "role": "client",
+      "name": "Jessica Brown",
+      "credits": 75,
+      "createdAt": "2024-02-15T16:30:00Z"
+    },
+    {
+      "Id": 7,
+      "email": "client3@example.com",
+      "role": "client",
+      "name": "David Wilson",
+      "credits": 200,
+      "createdAt": "2024-02-20T13:10:00Z"
+    }
+  ]
+}

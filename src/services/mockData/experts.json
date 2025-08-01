@@ -1,0 +1,36 @@
+{
+  "mockExperts": [
+    {
+      "Id": 1,
+      "userId": 1,
+      "displayName": "Coach IanB",
+      "subjects": ["Leadership", "Personal Development", "Business Strategy", "Performance Coaching"],
+      "bio": "Leadership coach and performance expert with over 15 years of experience helping executives and entrepreneurs reach their full potential.",
+      "contentCount": 24
+    },
+    {
+      "Id": 2,
+      "userId": 2,
+      "displayName": "Dr. Sarah Chen",
+      "subjects": ["Health & Wellness", "Nutrition", "Mental Health", "Stress Management"],
+      "bio": "Medical doctor specializing in integrative wellness, nutrition science, and stress management techniques for high-performance individuals.",
+      "contentCount": 18
+    },
+    {
+      "Id": 3,
+      "userId": 3,
+      "displayName": "Mike Rodriguez",
+      "subjects": ["Business Strategy", "Marketing", "Sales", "Entrepreneurship"],
+      "bio": "Serial entrepreneur and business strategist who has built and sold multiple successful companies in the tech and consulting sectors.",
+      "contentCount": 31
+    },
+    {
+      "Id": 4,
+      "userId": 4,
+      "displayName": "Emma Taylor",
+      "subjects": ["Technology", "Digital Transformation", "Project Management", "Innovation"],
+      "bio": "Technology executive and digital transformation leader with expertise in scaling tech organizations and implementing innovative solutions.",
+      "contentCount": 22
+    }
+  ]
+}

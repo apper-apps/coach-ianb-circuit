@@ -1,3 +1,4 @@
+import { toast } from 'react-toastify';
 class UserService {
   constructor() {
     // Initialize ApperClient with Project ID and Public Key
@@ -36,8 +37,8 @@ class UserService {
         return [];
       }
 
-      return response.data || [];
-} catch (error) {
+return response.data || [];
+    } catch (error) {
       let errorMessage = "Failed to fetch users";
       if (error?.response?.data?.message && error.response.data.message.trim()) {
         errorMessage = error.response.data.message;
@@ -47,6 +48,7 @@ class UserService {
         errorMessage = error;
       }
       console.error("Error fetching users:", errorMessage);
+      toast.error(errorMessage);
       return [];
     }
   }
@@ -72,8 +74,8 @@ class UserService {
         return null;
       }
 
-      return response.data;
-} catch (error) {
+return response.data;
+    } catch (error) {
       let errorMessage = `Failed to fetch user with ID ${id}`;
       if (error?.response?.data?.message && error.response.data.message.trim()) {
         errorMessage = error.response.data.message;
@@ -83,6 +85,7 @@ class UserService {
         errorMessage = error;
       }
       console.error(`Error fetching user with ID ${id}:`, errorMessage);
+      toast.error(errorMessage);
       return null;
     }
   }
@@ -124,7 +127,7 @@ async create(userData) {
           });
         }
         
-        return successfulRecords.length > 0 ? successfulRecords[0].data : null;
+return successfulRecords.length > 0 ? successfulRecords[0].data : null;
       }
     } catch (error) {
       let errorMessage = "Failed to create user";
@@ -136,6 +139,7 @@ async create(userData) {
         errorMessage = error;
       }
       console.error("Error creating user:", errorMessage);
+      toast.error(errorMessage);
       return null;
     }
   }
@@ -178,10 +182,10 @@ async update(id, userData) {
           });
         }
         
-        return successfulUpdates.length > 0 ? successfulUpdates[0].data : null;
+return successfulUpdates.length > 0 ? successfulUpdates[0].data : null;
       }
     } catch (error) {
-      let errorMessage = "Failed to update user";
+      let errorMessage = `Failed to update user with ID ${id}`;
       if (error?.response?.data?.message && error.response.data.message.trim()) {
         errorMessage = error.response.data.message;
       } else if (error?.message && error.message.trim()) {
@@ -189,7 +193,8 @@ async update(id, userData) {
       } else if (typeof error === 'string' && error.trim()) {
         errorMessage = error;
       }
-      console.error("Error updating user:", errorMessage);
+      console.error(`Error updating user with ID ${id}:`, errorMessage);
+      toast.error(errorMessage);
       return null;
     }
   }
@@ -221,7 +226,7 @@ if (failedDeletions.length > 0) {
         return successfulDeletions.length === params.RecordIds.length;
       }
       
-return true;
+      return true;
     } catch (error) {
       let errorMessage = "Failed to delete users";
       if (error?.response?.data?.message && error.response.data.message.trim()) {
@@ -232,6 +237,7 @@ return true;
         errorMessage = error;
       }
       console.error("Error deleting users:", errorMessage);
+      toast.error(errorMessage);
       return false;
     }
   }
@@ -289,9 +295,7 @@ async createDefaultAdmin() {
 
       const newAdmin = await this.create(adminData);
       
-      if (newAdmin) {
-        // Import toast here to avoid circular dependencies
-        const { toast } = await import('react-toastify');
+if (newAdmin) {
         toast.success("🎉 Default admin created! Email: admin@coachinb.ai, Password: Admin123!", {
           position: "top-right",
           autoClose: 15000,
@@ -315,17 +319,11 @@ async createDefaultAdmin() {
         errorMessage = error;
       }
       console.error("Error creating default admin:", errorMessage);
-      
-      // Import toast here to avoid circular dependencies
-      try {
-        const { toast } = await import('react-toastify');
-        toast.error(`Admin creation failed: ${errorMessage}`, {
-          position: "top-right",
-          autoClose: 8000,
-        });
-      } catch (toastError) {
-        console.error("Could not show error toast:", toastError);
-      }
+      toast.error(`Admin creation failed: ${errorMessage}`, {
+        position: "top-right",
+        autoClose: 8000,
+      });
+      return null;
     }
   }
 }

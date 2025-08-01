@@ -13,14 +13,15 @@ import { transcriptionService } from '@/services/api/transcriptionService';
 
 const UploadCenter = ({ currentUser }) => {
   const navigate = useNavigate();
-  const [isUploading, setIsUploading] = useState(false);
+const [isUploading, setIsUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [transcriptionStatus, setTranscriptionStatus] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     subject: '',
     description: '',
-    type: 'document'
+    type: 'document',
+    videoUrl: ''
   });
 
   const subjects = [
@@ -41,8 +42,25 @@ const UploadCenter = ({ currentUser }) => {
     }
   }, []);
 
-  const handleInputChange = (field, value) => {
+const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const isValidVideoUrl = (url) => {
+    if (!url) return false;
+    try {
+      const urlObj = new URL(url);
+      // Check for common video platforms and file extensions
+      const isVideoUrl = /\.(mp4|webm|mov|avi|mkv)$/i.test(urlObj.pathname) ||
+                        urlObj.hostname.includes('youtube.com') ||
+                        urlObj.hostname.includes('youtu.be') ||
+                        urlObj.hostname.includes('vimeo.com') ||
+                        urlObj.hostname.includes('dailymotion.com') ||
+                        urlObj.hostname.includes('twitch.tv');
+      return isVideoUrl;
+    } catch {
+      return false;
+    }
   };
 
   const processTranscription = async (file) => {
@@ -64,9 +82,17 @@ const UploadCenter = ({ currentUser }) => {
     }
   };
 
-  const handleUpload = async () => {
-    if (selectedFiles.length === 0) {
-      toast.error('Please select files to upload');
+const handleUpload = async () => {
+    const hasFiles = selectedFiles.length > 0;
+    const hasVideoUrl = formData.videoUrl.trim();
+
+    if (!hasFiles && !hasVideoUrl) {
+      toast.error('Please select files to upload or provide a video URL');
+      return;
+    }
+
+    if (hasVideoUrl && !isValidVideoUrl(formData.videoUrl)) {
+      toast.error('Please provide a valid video URL');
       return;
     }
 
@@ -83,36 +109,58 @@ const UploadCenter = ({ currentUser }) => {
     setIsUploading(true);
 
     try {
-      for (const file of selectedFiles) {
-        // Process transcription for media files
-        let transcription = null;
-        if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
-          transcription = await processTranscription(file);
-        }
+      // Handle file uploads
+      if (hasFiles) {
+        for (const file of selectedFiles) {
+          // Process transcription for media files
+          let transcription = null;
+          if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
+            transcription = await processTranscription(file);
+          }
 
-        // Create content entry
+          // Create content entry for file
+          const contentData = {
+            title: formData.title,
+            subject: formData.subject,
+            type: file.type.startsWith('video/') ? 'video' : 
+                  file.type.startsWith('audio/') ? 'audio' : 'document',
+            smeId: currentUser?.Id || 1,
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type,
+            transcription,
+            metadata: JSON.stringify({
+              description: formData.description,
+              originalFileName: file.name,
+              uploadedBy: currentUser?.name || 'Expert User'
+            })
+          };
+
+          await contentService.create(contentData);
+        }
+      }
+
+      // Handle video URL
+      if (hasVideoUrl) {
         const contentData = {
           title: formData.title,
           subject: formData.subject,
-          type: file.type.startsWith('video/') ? 'video' : 
-                file.type.startsWith('audio/') ? 'audio' : 'document',
-          expertId: currentUser?.Id || 1,
-          expertName: currentUser?.name || 'Expert User',
-          fileName: file.name,
-          fileSize: file.size,
-          fileType: file.type,
-          transcription,
-          metadata: {
+          type: 'video',
+          fileUrl: formData.videoUrl,
+          smeId: currentUser?.Id || 1,
+          metadata: JSON.stringify({
             description: formData.description,
-            originalFileName: file.name,
+            source: 'url',
             uploadedBy: currentUser?.name || 'Expert User'
-          }
+          })
         };
 
         await contentService.create(contentData);
       }
 
-      toast.success(`Successfully uploaded ${selectedFiles.length} file(s)`);
+      const itemCount = selectedFiles.length + (hasVideoUrl ? 1 : 0);
+      const itemType = hasVideoUrl && !hasFiles ? 'video URL' : 'file(s)';
+      toast.success(`Successfully added ${itemCount} ${itemType}`);
       
       // Reset form
       setSelectedFiles([]);
@@ -120,7 +168,8 @@ const UploadCenter = ({ currentUser }) => {
         title: '',
         subject: '',
         description: '',
-        type: 'document'
+        type: 'document',
+        videoUrl: ''
       });
       setTranscriptionStatus(null);
       
@@ -135,11 +184,15 @@ const UploadCenter = ({ currentUser }) => {
     }
   };
 
-  const removeFile = (index) => {
+const removeFile = (index) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
     if (selectedFiles.length === 1) {
       setTranscriptionStatus(null);
     }
+  };
+
+  const clearVideoUrl = () => {
+    setFormData(prev => ({ ...prev, videoUrl: '' }));
   };
 
   return (
@@ -217,6 +270,62 @@ const UploadCenter = ({ currentUser }) => {
               </div>
             </div>
           </Card>
+<Card className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Add Video URL
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Video URL
+                </label>
+                <div className="relative">
+                  <Input
+                    value={formData.videoUrl}
+                    onChange={(e) => handleInputChange('videoUrl', e.target.value)}
+                    placeholder="Enter video URL (YouTube, Vimeo, direct video link, etc.)"
+                    disabled={isUploading}
+                    className={formData.videoUrl && !isValidVideoUrl(formData.videoUrl) ? 'border-red-300' : ''}
+                  />
+                  {formData.videoUrl && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearVideoUrl}
+                      disabled={isUploading}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                    >
+                      <ApperIcon name="X" className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                {formData.videoUrl && !isValidVideoUrl(formData.videoUrl) && (
+                  <p className="text-xs text-red-600 mt-1">
+                    Please enter a valid video URL
+                  </p>
+                )}
+                {formData.videoUrl && isValidVideoUrl(formData.videoUrl) && (
+                  <div className="flex items-center space-x-2 text-sm text-green-600 bg-green-50 p-2 rounded mt-2">
+                    <ApperIcon name="CheckCircle" className="w-4 h-4" />
+                    <span>Valid video URL detected</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <ApperIcon name="Info" className="w-4 h-4 text-blue-600 mt-0.5" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium">Supported video platforms:</p>
+                  <p className="text-xs mt-1">
+                    YouTube, Vimeo, Dailymotion, Twitch, or direct video file links (.mp4, .webm, .mov)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Card>
 
           <Card className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -272,14 +381,22 @@ const UploadCenter = ({ currentUser }) => {
                 ))}
               </div>
             )}
+            
+            {selectedFiles.length === 0 && !formData.videoUrl && (
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg text-center">
+                <p className="text-sm text-gray-600">
+                  Upload files or add a video URL above to get started
+                </p>
+              </div>
+            )}
           </Card>
         </div>
 
         {/* Upload Summary */}
         <div className="space-y-6">
-          <Card className="p-6">
+<Card className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Upload Summary
+              Content Summary
             </h2>
             
             <div className="space-y-3">
@@ -288,8 +405,17 @@ const UploadCenter = ({ currentUser }) => {
                 <span className="font-medium">{selectedFiles.length}</span>
               </div>
               
+              {formData.videoUrl && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Video URL:</span>
+                  <span className="font-medium">
+                    {isValidVideoUrl(formData.videoUrl) ? '✓ Valid' : '⚠ Invalid'}
+                  </span>
+                </div>
+              )}
+              
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Total size:</span>
+                <span className="text-gray-600">Total file size:</span>
                 <span className="font-medium">
                   {selectedFiles.length > 0 
                     ? `${(selectedFiles.reduce((acc, file) => acc + file.size, 0) / 1024 / 1024).toFixed(2)} MB`
@@ -302,6 +428,13 @@ const UploadCenter = ({ currentUser }) => {
                 <div className="flex items-center space-x-2 text-sm text-blue-600 bg-blue-50 p-2 rounded">
                   <ApperIcon name="FileAudio" className="w-4 h-4" />
                   <span>Auto-transcription enabled</span>
+                </div>
+              )}
+
+              {formData.videoUrl && isValidVideoUrl(formData.videoUrl) && (
+                <div className="flex items-center space-x-2 text-sm text-purple-600 bg-purple-50 p-2 rounded">
+                  <ApperIcon name="Video" className="w-4 h-4" />
+                  <span>Video URL will be processed</span>
                 </div>
               )}
             </div>

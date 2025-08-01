@@ -34,11 +34,24 @@ async create(contentData) {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const newContent = {
-      ...contentData,
+      Name: contentData.title,
+      title: contentData.title,
+      subject: contentData.subject,
+      type: contentData.type,
+      fileUrl: contentData.fileUrl || null,
+      smeId: contentData.smeId,
+      metadata: contentData.metadata || null,
+      transcription: contentData.transcription || null,
+      hasTranscription: !!contentData.transcription,
+      transcriptionUpdatedAt: contentData.transcription ? new Date().toISOString() : null,
       Id: Math.max(...this.content.map(c => c.Id)) + 1,
       uploadedAt: new Date().toISOString(),
-      transcription: contentData.transcription || null,
-      hasTranscription: !!contentData.transcription
+      // Legacy fields for backward compatibility
+      fileName: contentData.fileName || null,
+      fileSize: contentData.fileSize || null,
+      fileType: contentData.fileType || null,
+      expertId: contentData.expertId || contentData.smeId,
+      expertName: contentData.expertName || null
     };
     
     this.content.push(newContent);

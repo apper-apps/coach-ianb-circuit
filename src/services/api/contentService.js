@@ -248,11 +248,11 @@ async delete(recordIds) {
     } catch (error) {
       if (error?.response?.data?.message) {
         console.error("Error deleting content:", error?.response?.data?.message);
-      } else {
+} else {
         console.error(error.message);
       }
       return false;
-}
+    }
   }
 
   async getBySmeId(smeId) {
@@ -352,8 +352,6 @@ async delete(recordIds) {
       return [];
     }
   }
-
-}
 
   async updateTranscription(id, transcriptionData) {
     try {

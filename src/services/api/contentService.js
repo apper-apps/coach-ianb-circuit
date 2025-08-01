@@ -1,6 +1,7 @@
+import { toast } from 'react-toastify';
+
 class ContentService {
   constructor() {
-    // Initialize ApperClient with Project ID and Public Key
     const { ApperClient } = window.ApperSDK;
     this.apperClient = new ApperClient({
       apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
@@ -14,8 +15,6 @@ class ContentService {
       const params = {
         fields: [
           { field: { Name: "Name" } },
-          { field: { Name: "Tags" } },
-          { field: { Name: "Owner" } },
           { field: { Name: "title" } },
           { field: { Name: "type" } },
           { field: { Name: "fileUrl" } },
@@ -39,6 +38,7 @@ class ContentService {
       
       if (!response.success) {
         console.error(response.message);
+        toast.error(response.message);
         return [];
       }
 
@@ -53,13 +53,11 @@ class ContentService {
     }
   }
 
-  async getById(id) {
+  async getById(recordId) {
     try {
       const params = {
         fields: [
           { field: { Name: "Name" } },
-          { field: { Name: "Tags" } },
-          { field: { Name: "Owner" } },
           { field: { Name: "title" } },
           { field: { Name: "type" } },
           { field: { Name: "fileUrl" } },
@@ -72,78 +70,17 @@ class ContentService {
           { field: { Name: "smeId" } }
         ]
       };
-
-      const response = await this.apperClient.getRecordById(this.tableName, id, params);
       
-      if (!response.success) {
-        console.error(response.message);
+      const response = await this.apperClient.getRecordById(this.tableName, recordId, params);
+      
+      if (!response || !response.data) {
         return null;
-      }
-
-      return response.data;
-} catch (error) {
-      if (error?.response?.data?.message) {
-        console.error(`Error fetching content with ID ${id}:`, error?.response?.data?.message);
       } else {
-        console.error(error.message);
-      }
-      return null;
-    }
-  }
-
-async create(contentData) {
-    try {
-      if (!contentData) {
-        console.error("Content data is required");
-        return null;
-      }
-
-      // Only include Updateable fields with proper validation
-      const params = {
-        records: [{
-          Name: contentData.Name || contentData.title,
-          Tags: contentData.Tags,
-          Owner: contentData.Owner ? parseInt(contentData.Owner?.Id || contentData.Owner) : null,
-          title: contentData.title,
-          type: contentData.type,
-          fileUrl: contentData.fileUrl,
-          subject: contentData.subject,
-          uploadedAt: contentData.uploadedAt || new Date().toISOString(),
-          metadata: contentData.metadata ? JSON.stringify(contentData.metadata) : null,
-          transcription: contentData.transcription || null,
-          hasTranscription: contentData.hasTranscription ? "true" : "",
-          transcriptionUpdatedAt: contentData.transcriptionUpdatedAt || null,
-          smeId: contentData.smeId ? parseInt(contentData.smeId?.Id || contentData.smeId) : null
-        }]
-      };
-
-      const response = await this.apperClient.createRecord(this.tableName, params);
-      
-      if (!response.success) {
-        console.error(response.message);
-        return null;
-      }
-
-      if (response.results) {
-        const successfulRecords = response.results.filter(result => result.success);
-        const failedRecords = response.results.filter(result => !result.success);
-        
-        if (failedRecords.length > 0) {
-          console.error(`Failed to create ${failedRecords.length} content records:`, JSON.stringify(failedRecords));
-          
-          failedRecords.forEach(record => {
-            record.errors?.forEach(error => {
-              console.error(`${error.fieldLabel}: ${error.message}`);
-            });
-            if (record.message) console.error(record.message);
-          });
-        }
-        
-        return successfulRecords.length > 0 ? successfulRecords[0].data : null;
+        return response.data;
       }
     } catch (error) {
       if (error?.response?.data?.message) {
-        console.error("Error creating content:", error?.response?.data?.message);
+        console.error(`Error fetching content with ID ${recordId}:`, error?.response?.data?.message);
       } else {
         console.error(error.message);
       }
@@ -151,126 +88,18 @@ async create(contentData) {
     }
   }
 
-async update(id, contentData) {
-    try {
-      if (!id || !contentData) {
-        console.error("ID and content data are required");
-        return null;
-      }
-
-      // Only include Updateable fields with proper validation
-      const params = {
-        records: [{
-          Id: parseInt(id),
-          Name: contentData.Name || contentData.title,
-          Tags: contentData.Tags,
-          Owner: contentData.Owner ? parseInt(contentData.Owner?.Id || contentData.Owner) : null,
-          title: contentData.title,
-          type: contentData.type,
-          fileUrl: contentData.fileUrl,
-          subject: contentData.subject,
-          uploadedAt: contentData.uploadedAt,
-          metadata: contentData.metadata ? JSON.stringify(contentData.metadata) : null,
-          transcription: contentData.transcription,
-          hasTranscription: contentData.hasTranscription === true || contentData.hasTranscription === "true" ? "true" : "",
-          transcriptionUpdatedAt: contentData.transcriptionUpdatedAt,
-          smeId: contentData.smeId ? parseInt(contentData.smeId?.Id || contentData.smeId) : null
-        }]
-      };
-
-      const response = await this.apperClient.updateRecord(this.tableName, params);
-      
-      if (!response.success) {
-        console.error(response.message);
-        return null;
-      }
-
-      if (response.results) {
-        const successfulUpdates = response.results.filter(result => result.success);
-        const failedUpdates = response.results.filter(result => !result.success);
-        
-        if (failedUpdates.length > 0) {
-          console.error(`Failed to update ${failedUpdates.length} content records:`, JSON.stringify(failedUpdates));
-          
-          failedUpdates.forEach(record => {
-            record.errors?.forEach(error => {
-              console.error(`${error.fieldLabel}: ${error.message}`);
-            });
-            if (record.message) console.error(record.message);
-          });
-        }
-        
-        return successfulUpdates.length > 0 ? successfulUpdates[0].data : null;
-      }
-    } catch (error) {
-      if (error?.response?.data?.message) {
-        console.error("Error updating content:", error?.response?.data?.message);
-      } else {
-        console.error(error.message);
-      }
-      return null;
-    }
-  }
-
-async delete(recordIds) {
-    try {
-      if (!recordIds || (Array.isArray(recordIds) && recordIds.length === 0)) {
-        console.error("Record IDs are required for deletion");
-        return false;
-      }
-
-      const ids = Array.isArray(recordIds) ? recordIds : [recordIds];
-      const params = {
-        RecordIds: ids.map(id => parseInt(id))
-      };
-
-      const response = await this.apperClient.deleteRecord(this.tableName, params);
-      
-      if (!response.success) {
-        console.error(response.message);
-        return false;
-      }
-
-      if (response.results) {
-        const successfulDeletions = response.results.filter(result => result.success);
-        const failedDeletions = response.results.filter(result => !result.success);
-        
-        if (failedDeletions.length > 0) {
-          console.error(`Failed to delete ${failedDeletions.length} content records:`, JSON.stringify(failedDeletions));
-          
-          failedDeletions.forEach(record => {
-            if (record.message) console.error(record.message);
-          });
-        }
-        
-        return successfulDeletions.length === ids.length;
-      }
-} catch (error) {
-      if (error?.response?.data?.message) {
-        console.error("Error deleting content:", error?.response?.data?.message);
-      } else {
-        console.error(error.message);
-      }
-      return false;
-    }
-  }
-
-  async getBySmeId(smeId) {
+  async getBySME(smeId) {
     try {
       const params = {
         fields: [
           { field: { Name: "Name" } },
-          { field: { Name: "Tags" } },
-          { field: { Name: "Owner" } },
           { field: { Name: "title" } },
           { field: { Name: "type" } },
           { field: { Name: "fileUrl" } },
           { field: { Name: "subject" } },
           { field: { Name: "uploadedAt" } },
           { field: { Name: "metadata" } },
-          { field: { Name: "transcription" } },
           { field: { Name: "hasTranscription" } },
-          { field: { Name: "transcriptionUpdatedAt" } },
           { field: { Name: "smeId" } }
         ],
         where: [
@@ -353,13 +182,65 @@ async delete(recordIds) {
     }
   }
 
-  async updateTranscription(id, transcriptionData) {
+  async create(contentData) {
     try {
-      if (!id || !transcriptionData) {
-        console.error("ID and transcription data are required");
+      // Only include Updateable fields
+      const params = {
+        records: [
+          {
+            Name: contentData.Name || contentData.title,
+            title: contentData.title,
+            type: contentData.type,
+            fileUrl: contentData.fileUrl,
+            subject: contentData.subject,
+            uploadedAt: contentData.uploadedAt || new Date().toISOString(),
+            metadata: contentData.metadata ? JSON.stringify(contentData.metadata) : null,
+            transcription: contentData.transcription || null,
+            // Convert hasTranscription to proper format for Checkbox field type
+            hasTranscription: contentData.hasTranscription ? "true" : "",
+            transcriptionUpdatedAt: contentData.transcriptionUpdatedAt || null,
+            smeId: parseInt(contentData.smeId)
+          }
+        ]
+      };
+      
+      const response = await this.apperClient.createRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
         return null;
       }
+      
+      if (response.results) {
+        const successfulRecords = response.results.filter(result => result.success);
+        const failedRecords = response.results.filter(result => !result.success);
+        
+        if (failedRecords.length > 0) {
+          console.error(`Failed to create content ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          
+          failedRecords.forEach(record => {
+            record.errors?.forEach(error => {
+              toast.error(`${error.fieldLabel}: ${error.message}`);
+            });
+            if (record.message) toast.error(record.message);
+          });
+        }
+        
+        return successfulRecords.length > 0 ? successfulRecords[0].data : null;
+      }
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error creating content:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      return null;
+    }
+  }
 
+  async updateTranscription(id, transcriptionData) {
+    try {
       const updateData = {
         transcription: transcriptionData,
         hasTranscription: "true", // Checkbox field format
@@ -367,13 +248,109 @@ async delete(recordIds) {
       };
       
       return await this.update(id, updateData);
-} catch (error) {
+    } catch (error) {
       if (error?.response?.data?.message) {
         console.error("Error updating transcription:", error?.response?.data?.message);
       } else {
         console.error(error.message);
       }
       return null;
+    }
+  }
+
+  async update(id, contentData) {
+    try {
+      // Only include Updateable fields
+      const params = {
+        records: [
+          {
+            Id: parseInt(id),
+            Name: contentData.Name || contentData.title,
+            title: contentData.title,
+            type: contentData.type,
+            fileUrl: contentData.fileUrl,
+            subject: contentData.subject,
+            uploadedAt: contentData.uploadedAt,
+            metadata: contentData.metadata ? JSON.stringify(contentData.metadata) : null,
+            transcription: contentData.transcription,
+            hasTranscription: contentData.hasTranscription === true || contentData.hasTranscription === "true" ? "true" : "",
+            transcriptionUpdatedAt: contentData.transcriptionUpdatedAt,
+            smeId: parseInt(contentData.smeId)
+          }
+        ]
+      };
+      
+      const response = await this.apperClient.updateRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return null;
+      }
+      
+      if (response.results) {
+        const successfulUpdates = response.results.filter(result => result.success);
+        const failedUpdates = response.results.filter(result => !result.success);
+        
+        if (failedUpdates.length > 0) {
+          console.error(`Failed to update content ${failedUpdates.length} records:${JSON.stringify(failedUpdates)}`);
+          
+          failedUpdates.forEach(record => {
+            record.errors?.forEach(error => {
+              toast.error(`${error.fieldLabel}: ${error.message}`);
+            });
+            if (record.message) toast.error(record.message);
+          });
+        }
+        
+        return successfulUpdates.length > 0 ? successfulUpdates[0].data : null;
+      }
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error updating content:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      return null;
+    }
+  }
+
+  async delete(recordIds) {
+    try {
+      const ids = Array.isArray(recordIds) ? recordIds : [recordIds];
+      const params = {
+        RecordIds: ids.map(id => parseInt(id))
+      };
+      
+      const response = await this.apperClient.deleteRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return false;
+      }
+      
+      if (response.results) {
+        const successfulDeletions = response.results.filter(result => result.success);
+        const failedDeletions = response.results.filter(result => !result.success);
+        
+        if (failedDeletions.length > 0) {
+          console.error(`Failed to delete content ${failedDeletions.length} records:${JSON.stringify(failedDeletions)}`);
+          
+          failedDeletions.forEach(record => {
+            if (record.message) toast.error(record.message);
+          });
+        }
+        
+        return successfulDeletions.length === ids.length;
+      }
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error deleting content:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      return false;
     }
   }
 
@@ -471,5 +448,4 @@ async delete(recordIds) {
     }
   }
 }
-
 export const contentService = new ContentService();

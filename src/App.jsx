@@ -1,25 +1,23 @@
-import "@/index.css";
 import React, { createContext, useEffect, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { ToastContainer } from "react-toastify";
-import { userService } from "@/services/api/userService";
+import { clearUser, setUser } from "./store/userSlice";
+import Login from "@/components/pages/Login";
+import Signup from "@/components/pages/Signup";
+import Callback from "@/components/pages/Callback";
+import ErrorPage from "@/components/pages/ErrorPage";
+import ResetPassword from "@/components/pages/ResetPassword";
+import PromptPassword from "@/components/pages/PromptPassword";
+import "@/index.css";
 import Layout from "@/components/organisms/Layout";
 import AccountSettings from "@/components/pages/AccountSettings";
-import UserManagement from "@/components/pages/UserManagement";
 import SMEDashboard from "@/components/pages/SMEDashboard";
-import Login from "@/components/pages/Login";
-import PromptPassword from "@/components/pages/PromptPassword";
 import SuperAdminDashboard from "@/components/pages/SuperAdminDashboard";
-import ResetPassword from "@/components/pages/ResetPassword";
 import Analytics from "@/components/pages/Analytics";
 import UploadCenter from "@/components/pages/UploadCenter";
 import ClientDashboard from "@/components/pages/ClientDashboard";
-import Callback from "@/components/pages/Callback";
 import QueryInterface from "@/components/pages/QueryInterface";
-import ErrorPage from "@/components/pages/ErrorPage";
-import Signup from "@/components/pages/Signup";
-import { clearUser, setUser } from "@/store/userSlice";
 
 // Create auth context
 export const AuthContext = createContext(null);
@@ -99,57 +97,11 @@ function App() {
           dispatch(clearUser());
         }
       },
-onError: function(error) {
-        // Enhanced error handling to deal with various error object structures
-        let errorMessage = "Authentication failed. Please try again.";
-        
-        if (error) {
-          if (typeof error === 'string' && error.trim()) {
-            errorMessage = error;
-          } else if (error.message && error.message.trim()) {
-            errorMessage = error.message;
-          } else if (error.error && error.error.trim()) {
-            errorMessage = error.error;
-          } else if (error.stack && Array.isArray(error.stack) && error.stack.length > 0) {
-            errorMessage = "Authentication error occurred. Please check your credentials.";
-          } else if (typeof error === 'object' && Object.keys(error).length > 0) {
-            errorMessage = "Authentication service error. Please try again later.";
-          }
-        }
-        
-        console.error("Authentication failed:", errorMessage);
-        console.error("Full error object:", JSON.stringify(error, null, 2));
+      onError: function(error) {
+        console.error("Authentication failed:", error);
       }
     });
-
-    // Create default admin user if none exists
-    const createDefaultAdmin = async () => {
-      try {
-        const { userService } = await import('./services/api/userService');
-        await userService.createDefaultAdmin();
-      } catch (error) {
-        console.error("Failed to create default admin:", error);
-      }
-};
-    
-    // Call createDefaultAdmin after SDK initialization
-    createDefaultAdmin();
   }, []);// No props and state should be bound
-// Create default admin user on initialization
-  useEffect(() => {
-    const createDefaultAdmin = async () => {
-      if (isInitialized) {
-        try {
-          const { userService } = await import('@/services/api/userService');
-          await userService.createDefaultAdmin();
-        } catch (error) {
-          console.error("Error during admin creation:", error);
-        }
-      }
-    };
-    
-    createDefaultAdmin();
-  }, [isInitialized]);
   
   // Authentication methods to share via context
   const authMethods = {
@@ -183,7 +135,7 @@ return (
           <Route path="/reset-password/:appId/:fields" element={<ResetPassword />} />
           
           {/* Protected Routes */}
-{isAuthenticated && currentUser && (
+          {isAuthenticated && currentUser && (
             <>
               {/* Client Routes */}
               {currentUser.role === "client" && (
@@ -204,24 +156,13 @@ return (
                 </>
               )}
               
-{/* Super Admin Routes */}
+              {/* Super Admin Routes */}
               {currentUser.role === "super_admin" && (
                 <>
                   <Route path="/" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><SuperAdminDashboard currentUser={currentUser} /></Layout>} />
                   <Route path="/chat" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><QueryInterface currentUser={currentUser} /></Layout>} />
                   <Route path="/uploads" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><UploadCenter currentUser={currentUser} /></Layout>} />
                   <Route path="/analytics" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><Analytics currentUser={currentUser} /></Layout>} />
-                  <Route path="/users" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><UserManagement currentUser={currentUser} /></Layout>} />
-                  <Route path="/account" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><AccountSettings currentUser={currentUser} /></Layout>} />
-                </>
-              )}
-              
-              {/* Fallback Routes - Prevent blank screen for role mismatches */}
-              {currentUser.role !== "client" && currentUser.role !== "sme" && currentUser.role !== "super_admin" && (
-                <>
-                  {console.warn("User role not recognized:", currentUser.role, "Defaulting to query interface")}
-                  <Route path="/" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><QueryInterface currentUser={currentUser} /></Layout>} />
-                  <Route path="/chat" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><QueryInterface currentUser={currentUser} /></Layout>} />
                   <Route path="/account" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><AccountSettings currentUser={currentUser} /></Layout>} />
                 </>
               )}

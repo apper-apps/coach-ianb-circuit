@@ -130,11 +130,10 @@ onError: function(error) {
       } catch (error) {
         console.error("Failed to create default admin:", error);
       }
-    };
+};
     
     // Call createDefaultAdmin after SDK initialization
     createDefaultAdmin();
-    });
   }, []);// No props and state should be bound
 // Create default admin user on initialization
   useEffect(() => {

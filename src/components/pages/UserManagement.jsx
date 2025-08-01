@@ -148,7 +148,7 @@ const UserManagement = ({ currentUser }) => {
   if (loading) return <Loading />;
   if (error) return <Error message={error} onRetry={loadUsers} />;
 
-  return (
+return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -165,6 +165,52 @@ const UserManagement = ({ currentUser }) => {
         </Button>
       </div>
 
+      {/* Demo Credentials Display */}
+      <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+            <ApperIcon name="Key" size={20} className="text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">Demo Login Credentials</h3>
+            <p className="text-blue-700 text-sm mb-4">Use these credentials to test different user roles:</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <ApperIcon name="Shield" size={16} className="text-red-500" />
+                  <span className="font-semibold text-gray-900">Super Admin</span>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 w-16">Email:</span>
+                    <code className="bg-gray-100 px-2 py-1 rounded text-gray-800 font-mono">admin@demo.com</code>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 w-16">Password:</span>
+                    <code className="bg-gray-100 px-2 py-1 rounded text-gray-800 font-mono">DemoAdmin123!</code>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <ApperIcon name="GraduationCap" size={16} className="text-blue-500" />
+                  <span className="font-semibold text-gray-900">Subject Matter Expert</span>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 w-16">Email:</span>
+                    <code className="bg-gray-100 px-2 py-1 rounded text-gray-800 font-mono">expert@demo.com</code>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 w-16">Password:</span>
+                    <code className="bg-gray-100 px-2 py-1 rounded text-gray-800 font-mono">DemoExpert123!</code>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
       {/* Filters */}
       <Card className="p-6">
         <div className="flex flex-col sm:flex-row gap-4">

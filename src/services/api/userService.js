@@ -240,15 +240,15 @@ if (failedDeletions.length > 0) {
       toast.error(errorMessage);
       return false;
     }
-  }
+}
 
-  // Create default admin user if it doesn't exist
+  // Create default demo users if they don't exist
 async createDefaultAdmin() {
     try {
-      console.log("Checking for existing admin user...");
+      console.log("Checking for existing demo users...");
       
-      // Check if admin user already exists
-      const params = {
+      // Check if demo admin user already exists
+      const adminParams = {
         fields: [
           {
             field: {
@@ -270,47 +270,114 @@ async createDefaultAdmin() {
           {
             FieldName: "email",
             Operator: "EqualTo",
-            Values: ["admin@coachinb.ai"]
+            Values: ["admin@demo.com"]
           }
         ]
       };
 
-      const existingAdmin = await this.apperClient.fetchRecords(this.tableName, params);
+      const existingAdmin = await this.apperClient.fetchRecords(this.tableName, adminParams);
+      let adminUser = null;
+      
       if (existingAdmin.success && existingAdmin.data && existingAdmin.data.length > 0) {
-        console.log("Default admin user already exists");
-        return existingAdmin.data[0];
+        console.log("Demo admin user already exists");
+        adminUser = existingAdmin.data[0];
+      } else {
+        console.log("Creating demo admin user...");
+        
+        // Create demo admin user
+        const adminData = {
+          Name: "Demo Administrator",
+          email: "admin@demo.com",
+          role: "super_admin",
+          credits: 1000,
+          password: "DemoAdmin123!",
+          createdAt: new Date().toISOString()
+        };
+
+        adminUser = await this.create(adminData);
+        if (!adminUser) {
+          throw new Error("Failed to create demo admin user - no data returned");
+        }
+        console.log("Demo admin user created successfully");
       }
 
-      console.log("Creating default admin user...");
-      
-      // Create default admin user
-      const adminData = {
-        Name: "System Administrator",
-        email: "admin@coachinb.ai",
-        role: "super_admin",
-        credits: 1000,
-        password: "Admin123!",
-        createdAt: new Date().toISOString()
+      // Check if demo SME user already exists
+      const smeParams = {
+        fields: [
+          {
+            field: {
+              Name: "Id"
+            }
+          },
+          {
+            field: {
+              Name: "email"
+            }
+          },
+          {
+            field: {
+              Name: "role"
+            }
+          }
+        ],
+        where: [
+          {
+            FieldName: "email",
+            Operator: "EqualTo", 
+            Values: ["expert@demo.com"]
+          }
+        ]
       };
 
-      const newAdmin = await this.create(adminData);
-      
-if (newAdmin) {
-        toast.success("🎉 Default admin created! Email: admin@coachinb.ai, Password: Admin123!", {
-          position: "top-right",
-          autoClose: 15000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        console.log("Default admin user created successfully with credentials: admin@coachinb.ai / Admin123!");
-        return newAdmin;
+      const existingSME = await this.apperClient.fetchRecords(this.tableName, smeParams);
+      let smeUser = null;
+
+      if (existingSME.success && existingSME.data && existingSME.data.length > 0) {
+        console.log("Demo SME user already exists");
+        smeUser = existingSME.data[0];
       } else {
-        throw new Error("Failed to create admin user - no data returned");
+        console.log("Creating demo SME user...");
+        
+        // Create demo SME user
+        const smeData = {
+          Name: "Demo Expert",
+          email: "expert@demo.com", 
+          role: "sme",
+          credits: 0,
+          password: "DemoExpert123!",
+          createdAt: new Date().toISOString()
+        };
+
+        smeUser = await this.create(smeData);
+        if (!smeUser) {
+          throw new Error("Failed to create demo SME user - no data returned");
+        }
+        console.log("Demo SME user created successfully");
       }
+
+      // Show success toast with both credentials
+      toast.success("🎉 Demo users ready!\n\n👨‍💼 Admin: admin@demo.com / DemoAdmin123!\n🎓 Expert: expert@demo.com / DemoExpert123!", {
+        position: "top-right",
+        autoClose: 20000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        style: {
+          whiteSpace: 'pre-line',
+          fontSize: '14px',
+          lineHeight: '1.5'
+        }
+      });
+
+      console.log("Demo credentials available:");
+      console.log("Admin: admin@demo.com / DemoAdmin123!");
+      console.log("Expert: expert@demo.com / DemoExpert123!");
+      
+      return { admin: adminUser, sme: smeUser };
+      
     } catch (error) {
-      let errorMessage = "Failed to create default admin user";
+      let errorMessage = "Failed to create demo users";
       if (error?.response?.data?.message && error.response.data.message.trim()) {
         errorMessage = error.response.data.message;
       } else if (error?.message && error.message.trim()) {
@@ -318,8 +385,8 @@ if (newAdmin) {
       } else if (typeof error === 'string' && error.trim()) {
         errorMessage = error;
       }
-      console.error("Error creating default admin:", errorMessage);
-      toast.error(`Admin creation failed: ${errorMessage}`, {
+      console.error("Error creating demo users:", errorMessage);
+      toast.error(`Demo user creation failed: ${errorMessage}`, {
         position: "top-right",
         autoClose: 8000,
       });

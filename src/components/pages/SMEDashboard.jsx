@@ -212,6 +212,7 @@ const quickActions = [
 </div>
       </div>
     </div>
+  </div>
   );
 };
 

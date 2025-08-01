@@ -62,26 +62,22 @@ const ContentCard = ({
             <span>{content.subject}</span>
           </div>
           
-          {(content.hasTranscription === "true" || content.hasTranscription === true) && (
+          {content.hasTranscription && (
             <div className="flex items-center space-x-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
               <ApperIcon name="FileAudio" className="w-3 h-3" />
               <span>Transcription available</span>
             </div>
           )}
           
-          {content.metadata && (
+          {content.metadata?.description && (
             <p className="text-sm text-gray-600 line-clamp-2">
-              {typeof content.metadata === 'string' 
-                ? JSON.parse(content.metadata).description 
-                : content.metadata.description}
+              {content.metadata.description}
             </p>
           )}
           
-          {content.transcription && !content.metadata && (
+          {content.transcription && !content.metadata?.description && (
             <p className="text-sm text-gray-600 line-clamp-2">
-              {typeof content.transcription === 'string' 
-                ? content.transcription 
-                : content.transcription.text}
+              {content.transcription.text}
             </p>
           )}
         </div>

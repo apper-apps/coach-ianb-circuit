@@ -4,34 +4,11 @@ import Button from "@/components/atoms/Button";
 
 const Error = ({ 
   message = "Something went wrong. Please try again.", 
-  error,
   onRetry, 
   className,
   title = "Oops!",
   ...props 
 }) => {
-  // Enhanced error message handling
-  const getErrorMessage = () => {
-    if (message && message.trim()) {
-      return message;
-    }
-    
-    if (error) {
-      if (typeof error === 'string' && error.trim()) {
-        return error;
-      } else if (error.message && error.message.trim()) {
-        return error.message;
-      } else if (error.error && error.error.trim()) {
-        return error.error;
-      } else if (typeof error === 'object') {
-        return "An unexpected error occurred. Please try again.";
-      }
-    }
-    
-    return "Something went wrong. Please try again.";
-  };
-
-  const displayMessage = getErrorMessage();
   return (
     <div className={cn("flex flex-col items-center justify-center py-12 px-4", className)} {...props}>
       <div className="text-center max-w-md">
@@ -40,7 +17,7 @@ const Error = ({
             <ApperIcon name="AlertTriangle" className="w-8 h-8 text-error" />
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-<p className="text-gray-600 leading-relaxed">{displayMessage}</p>
+          <p className="text-gray-600 leading-relaxed">{message}</p>
         </div>
         
         {onRetry && (

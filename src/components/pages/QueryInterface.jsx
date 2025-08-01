@@ -98,25 +98,23 @@ const QueryInterface = ({ currentUser }) => {
       };
 
       const response = await queryService.create(queryData);
-const aiMessage = {
-        Id: Date.now() + 1,
-        message: response.response,
-        isUser: false,
-        timestamp: new Date().toISOString(),
-        sources: response.sources || [],
-        isFromFallback: response.isFromFallback || false
-      };
       
-      setMessages(prev => [...prev, aiMessage]);
-      setIsTyping(false);
-      
-      if (currentUser.role === "client") {
-        if (response.isFromFallback) {
-          toast.warning("Query processed with backup system. AI service may be unavailable.");
-        } else {
-          toast.success("Query processed successfully with AI!");
+      setTimeout(() => {
+        const aiMessage = {
+          Id: Date.now() + 1,
+          message: response.response,
+          isUser: false,
+          timestamp: new Date().toISOString(),
+          sources: response.sources || []
+        };
+        
+        setMessages(prev => [...prev, aiMessage]);
+        setIsTyping(false);
+        
+        if (currentUser.role === "client") {
+          toast.success("Query processed successfully!");
         }
-      }
+      }, 2000);
 
     } catch (err) {
       setIsTyping(false);

@@ -1,26 +1,15 @@
 class UserService {
   constructor() {
+    const { ApperClient } = window.ApperSDK;
+    this.apperClient = new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+    });
     this.tableName = 'app_User';
-    this.apperClient = null;
   }
 
-  _initializeClient() {
-    if (!this.apperClient) {
-      if (!window.ApperSDK) {
-        throw new Error('Apper SDK not loaded. Make sure the SDK script is included in your HTML.');
-      }
-      const { ApperClient } = window.ApperSDK;
-      this.apperClient = new ApperClient({
-        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-      });
-    }
-    return this.apperClient;
-  }
-async getAll() {
+  async getAll() {
     try {
-      const client = this._initializeClient();
-      
       const params = {
         fields: [
           { field: { Name: "Name" } },
@@ -40,7 +29,7 @@ async getAll() {
         ]
       };
 
-      const response = await client.fetchRecords(this.tableName, params);
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
       
       if (!response.success) {
         console.error(response.message);
@@ -58,10 +47,8 @@ async getAll() {
     }
   }
 
-async getById(id) {
+  async getById(id) {
     try {
-      const client = this._initializeClient();
-      
       const params = {
         fields: [
           { field: { Name: "Name" } },
@@ -77,7 +64,7 @@ async getById(id) {
         ]
       };
 
-      const response = await client.getRecordById(this.tableName, id, params);
+      const response = await this.apperClient.getRecordById(this.tableName, id, params);
       
       if (!response.success) {
         console.error(response.message);
@@ -95,10 +82,8 @@ async getById(id) {
     }
   }
 
-async getByRole(role) {
+  async getByRole(role) {
     try {
-      const client = this._initializeClient();
-      
       const params = {
         fields: [
           { field: { Name: "Name" } },
@@ -116,7 +101,7 @@ async getByRole(role) {
         ]
       };
 
-      const response = await client.fetchRecords(this.tableName, params);
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
       
       if (!response.success) {
         console.error(response.message);
@@ -134,10 +119,8 @@ async getByRole(role) {
     }
   }
 
-async create(userData) {
+  async create(userData) {
     try {
-      const client = this._initializeClient();
-      
       // Filter to only include Updateable fields
       const updateableData = {
         Name: userData.Name,
@@ -156,7 +139,7 @@ async create(userData) {
         records: [updateableData]
       };
 
-      const response = await client.createRecord(this.tableName, params);
+      const response = await this.apperClient.createRecord(this.tableName, params);
       
       if (!response.success) {
         console.error(response.message);
@@ -184,10 +167,8 @@ async create(userData) {
     }
   }
 
-async update(id, userData) {
+  async update(id, userData) {
     try {
-      const client = this._initializeClient();
-      
       // Filter to only include Updateable fields
       const updateableData = {
         Id: parseInt(id)
@@ -206,7 +187,7 @@ async update(id, userData) {
         records: [updateableData]
       };
 
-      const response = await client.updateRecord(this.tableName, params);
+      const response = await this.apperClient.updateRecord(this.tableName, params);
       
       if (!response.success) {
         console.error(response.message);
@@ -234,15 +215,13 @@ async update(id, userData) {
     }
   }
 
-async delete(id) {
+  async delete(id) {
     try {
-      const client = this._initializeClient();
-      
       const params = {
         RecordIds: [parseInt(id)]
       };
 
-      const response = await client.deleteRecord(this.tableName, params);
+      const response = await this.apperClient.deleteRecord(this.tableName, params);
       
       if (!response.success) {
         console.error(response.message);

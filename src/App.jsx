@@ -79,8 +79,9 @@ function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </>
             )}
-{/* Super Admin Routes */}
-            {currentUser.role === "super_admin" && (
+            
+            {/* Super Admin Routes */}
+{currentUser.role === "super_admin" && (
               <>
                 <Route path="/" element={<SuperAdminDashboard currentUser={currentUser} />} />
                 <Route path="/chat" element={<QueryInterface currentUser={currentUser} />} />

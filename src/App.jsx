@@ -103,6 +103,21 @@ function App() {
       }
     });
   }, []);// No props and state should be bound
+// Create default admin user on initialization
+  useEffect(() => {
+    const createDefaultAdmin = async () => {
+      if (isInitialized) {
+        try {
+          const { userService } = await import('@/services/api/userService');
+          await userService.createDefaultAdmin();
+        } catch (error) {
+          console.error("Error during admin creation:", error);
+        }
+      }
+    };
+    
+    createDefaultAdmin();
+  }, [isInitialized]);
   
   // Authentication methods to share via context
   const authMethods = {

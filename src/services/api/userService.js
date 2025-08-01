@@ -141,18 +141,18 @@ class UserService {
           email: userData.email,
           role: userData.role,
           credits: parseInt(userData.credits) || 0,
-          createdAt: userData.createdAt,
+createdAt: userData.createdAt,
           password: userData.password
         }]
       };
-
+      
       const response = await this.apperClient.updateRecord(this.tableName, params);
       
       if (!response.success) {
         console.error(response.message);
         return null;
       }
-
+      
       if (response.results) {
         const successfulUpdates = response.results.filter(result => result.success);
         const failedUpdates = response.results.filter(result => !result.success);
@@ -207,6 +207,8 @@ class UserService {
         
         return successfulDeletions.length === params.RecordIds.length;
       }
+      
+      return true;
     } catch (error) {
       if (error?.response?.data?.message) {
         console.error("Error deleting users:", error?.response?.data?.message);
@@ -215,7 +217,83 @@ class UserService {
       }
       return false;
     }
-}
+  }
+
+  // Create default admin user if it doesn't exist
+  async createDefaultAdmin() {
+    try {
+      // Check if admin user already exists
+      const params = {
+        fields: [
+          {
+            field: {
+              Name: "Id"
+            }
+          },
+          {
+            field: {
+              Name: "email"
+            }
+          },
+          {
+            field: {
+              Name: "role"
+            }
+          }
+        ],
+        where: [
+          {
+            FieldName: "email",
+            Operator: "EqualTo",
+            Values: ["admin@coachinb.ai"]
+          }
+        ]
+      };
+
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+const existingAdmin = await apperClient.fetchRecords(this.tableName, params);
+      if (existingAdmin.success && existingAdmin.data && existingAdmin.data.length > 0) {
+        console.log("Default admin user already exists");
+        return existingAdmin.data[0];
+      }
+
+      // Create default admin user
+      const adminData = {
+        Name: "System Administrator",
+        email: "admin@coachinb.ai",
+        role: "super_admin",
+        credits: 1000,
+        password: "Admin123!",
+        createdAt: new Date().toISOString()
+      };
+
+      const newAdmin = await this.create(adminData);
+      
+      if (newAdmin) {
+        // Import toast here to avoid circular dependencies
+        const { toast } = await import('react-toastify');
+        toast.success("Default admin created! Email: admin@coachinb.ai, Password: Admin123!", {
+          position: "top-right",
+          autoClose: 10000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        console.log("Default admin user created successfully");
+        return newAdmin;
+      }
+    } catch (error) {
+      console.error("Error creating default admin:", error);
+      // Import toast here to avoid circular dependencies
+      const { toast } = await import('react-toastify');
+      toast.error("Failed to create default admin user");
+    }
+  }
 }
 
 export const userService = new UserService();

@@ -18,6 +18,7 @@ import Analytics from "@/components/pages/Analytics";
 import UploadCenter from "@/components/pages/UploadCenter";
 import ClientDashboard from "@/components/pages/ClientDashboard";
 import QueryInterface from "@/components/pages/QueryInterface";
+import UserManagement from "@/components/pages/UserManagement";
 
 // Create auth context
 export const AuthContext = createContext(null);
@@ -156,13 +157,14 @@ return (
                 </>
               )}
               
-              {/* Super Admin Routes */}
+{/* Super Admin Routes */}
               {currentUser.role === "super_admin" && (
                 <>
                   <Route path="/" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><SuperAdminDashboard currentUser={currentUser} /></Layout>} />
                   <Route path="/chat" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><QueryInterface currentUser={currentUser} /></Layout>} />
                   <Route path="/uploads" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><UploadCenter currentUser={currentUser} /></Layout>} />
                   <Route path="/analytics" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><Analytics currentUser={currentUser} /></Layout>} />
+                  <Route path="/users" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><UserManagement currentUser={currentUser} /></Layout>} />
                   <Route path="/account" element={<Layout currentUser={currentUser} onLogout={authMethods.logout}><AccountSettings currentUser={currentUser} /></Layout>} />
                 </>
               )}
